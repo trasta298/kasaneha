@@ -59,7 +59,7 @@ services:
       - '80:80'
       - '443:443'
     environment:
-      DOMAINS: 'kasaneha.trasta.dev -> http://backend:8080, api.kasaneha.trasta.dev -> http://frontend:4321'
+      DOMAINS: 'api.kasaneha.trasta.dev -> http://backend:8080, kasaneha.trasta.dev -> http://frontend:4321'
       STAGE: 'local'
       FORCE_RENEW: 'false'
       CLIENT_MAX_BODY_SIZE: 0
