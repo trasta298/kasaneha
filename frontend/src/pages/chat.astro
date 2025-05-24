@@ -4,13 +4,13 @@ import Navigation from '../components/Navigation.astro';
 ---
 
 <Layout title="チャット - Kasaneha">
-  <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+  <div class="h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100">
     <Navigation currentPath="/chat" />
     
     <!-- Main chat container -->
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+    <div class="flex-1 flex flex-col max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-6 overflow-hidden">
       <!-- Chat header with elevation -->
-      <div class="bg-white shadow-sm border border-gray-200 rounded-t-xl mx-auto mt-6 backdrop-blur-sm">
+      <div class="bg-white shadow-sm border border-gray-200 rounded-t-xl mt-6 backdrop-blur-sm flex-shrink-0">
         <div class="px-6 py-5 sm:px-8">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
@@ -55,10 +55,10 @@ import Navigation from '../components/Navigation.astro';
       </div>
 
       <!-- Chat messages container with better spacing -->
-      <div class="bg-white shadow-sm border-l border-r border-gray-200 mx-auto">
+      <div class="bg-white shadow-sm border-l border-r border-gray-200 flex-1 flex flex-col overflow-hidden">
         <div 
           id="messages-container" 
-          class="h-[calc(100vh-320px)] overflow-y-auto px-6 py-6 scroll-smooth"
+          class="flex-1 overflow-y-auto px-6 py-6 scroll-smooth"
         >
           <!-- Loading state with better design -->
           <div id="loading-messages" class="flex flex-col items-center justify-center py-16">
@@ -116,24 +116,25 @@ import Navigation from '../components/Navigation.astro';
       </div>
 
       <!-- Message input with material design -->
-      <div class="bg-white shadow-sm border border-gray-200 rounded-b-xl mx-auto">
+      <div class="bg-white shadow-sm border border-gray-200 rounded-b-xl flex-shrink-0">
         <div class="px-6 py-5">
-          <form id="message-form" class="flex items-end space-x-4">
-            <div class="flex-1">
+          <form id="message-form" class="flex items-stretch space-x-4">
+            <div class="flex-1 flex items-end">
               <textarea
                 id="message-input"
                 rows="1"
                 class="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-0 focus:border-gray-300 transition-all duration-200 text-gray-900 placeholder-gray-500 shadow-sm scrollbar-hide"
-                placeholder="今日の気持ちや出来事を話してください..."
+                placeholder="今日の気持ちを話してください..."
                 style="min-height: 48px; max-height: 120px;"
                 disabled
               ></textarea>
             </div>
-            <div class="flex flex-col justify-end">
+            <div class="flex items-end">
               <button
                 type="submit"
                 id="send-button"
-                class="inline-flex items-center justify-center w-12 h-12 bg-blue-600 text-white rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
+                class="inline-flex items-center justify-center px-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
+                style="min-height: 48px;"
                 disabled
               >
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -463,7 +464,23 @@ import Navigation from '../components/Navigation.astro';
     }, 100);
   }
 
-  // Update UI state
+  // Update send button state only (without triggering re-renders)
+  function updateSendButtonState() {
+    const session = $currentSession.get();
+    const isSending = $isSending.get();
+    
+    // Check if this is a historical session (not today)
+    const today = new Date().toDateString();
+    const sessionDateString = session ? new Date(session.session_date).toDateString() : null;
+    const isHistoricalSession = sessionDateString !== null && sessionDateString !== today;
+    
+    if (sendButton) {
+      const hasText = messageInput?.value.trim().length > 0;
+      (sendButton as HTMLButtonElement).disabled = !session || session.status === 'completed' || isSending || !hasText || isHistoricalSession;
+    }
+  }
+
+  // Update UI state (full UI update)
   function updateUIState() {
     const session = $currentSession.get();
     const messages = $messages.get();
@@ -492,19 +509,13 @@ import Navigation from '../components/Navigation.astro';
     // Enable/disable input
     if (messageInput) {
       messageInput.disabled = !session || session.status === 'completed' || isSending || isHistoricalSession;
-      
-      // Update placeholder for historical sessions
-      if (isHistoricalSession) {
-        messageInput.placeholder = '過去の日記は閲覧のみです';
-      } else if (session?.status === 'completed') {
-        messageInput.placeholder = 'このセッションは完了済みです';
-      } else {
-        messageInput.placeholder = '今日の気持ちや出来事を話してください...';
-      }
     }
-    if (sendButton) {
-      (sendButton as HTMLButtonElement).disabled = !session || session.status === 'completed' || isSending || !messageInput?.value.trim() || isHistoricalSession;
-    }
+    
+    // Update placeholder text responsively
+    updatePlaceholderText();
+    
+    // Update send button state
+    updateSendButtonState();
 
     // Update session info
     if (session) {
@@ -620,12 +631,42 @@ import Navigation from '../components/Navigation.astro';
     }
   }
 
-  // Auto-resize textarea
+  // Update placeholder text based on screen size
+  function updatePlaceholderText() {
+    if (!messageInput) return;
+    
+    const session = $currentSession.get();
+    const today = new Date().toDateString();
+    const sessionDateString = session ? new Date(session.session_date).toDateString() : null;
+    const isHistoricalSession = sessionDateString !== null && sessionDateString !== today;
+    
+    // Check screen size
+    const isMobile = window.innerWidth < 640; // sm breakpoint
+    const isTablet = window.innerWidth >= 640 && window.innerWidth < 1024; // md breakpoint
+    
+    // Set placeholder based on session status and screen size
+    if (isHistoricalSession) {
+      messageInput.placeholder = '過去の日記は閲覧のみです';
+    } else if (session?.status === 'completed') {
+      messageInput.placeholder = 'このセッションは完了済みです';
+    } else {
+      if (isMobile) {
+        messageInput.placeholder = '今日の気持ちを...';
+      } else if (isTablet) {
+        messageInput.placeholder = '今日の気持ちを話してください';
+      } else {
+        messageInput.placeholder = '今日の気持ちや出来事を話してください...';
+      }
+    }
+  }
+
+  // Auto-resize textarea and sync send button height
   function adjustTextareaHeight() {
-    if (messageInput) {
+    if (messageInput && sendButton) {
       messageInput.style.height = 'auto';
       const newHeight = Math.min(Math.max(messageInput.scrollHeight, 48), 120);
       messageInput.style.height = newHeight + 'px';
+      sendButton.style.height = newHeight + 'px';
     }
   }
 
@@ -685,6 +726,7 @@ import Navigation from '../components/Navigation.astro';
     messageInput?.addEventListener('input', () => {
       updateCharCount();
       adjustTextareaHeight();
+      updateSendButtonState(); // Update only send button state to avoid flickering
     });
 
     messageInput?.addEventListener('keydown', (e) => {
@@ -738,5 +780,14 @@ import Navigation from '../components/Navigation.astro';
       adjustTextareaHeight();
       initializeChat();
     });
+
+    // Also listen for immediate input events for faster UI updates
+    messageInput?.addEventListener('keyup', updateSendButtonState);
+    messageInput?.addEventListener('paste', () => {
+      setTimeout(updateSendButtonState, 0); // Wait for paste to complete
+    });
+
+    // Update placeholder text on window resize
+    window.addEventListener('resize', updatePlaceholderText);
   }
 </script> 
