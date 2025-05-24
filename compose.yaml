@@ -11,7 +11,7 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
-      - PUBLIC_API_BASE_URL=${PUBLIC_API_BASE_URL:-http://localhost:8080}
+      - PUBLIC_API_BASE_URL=${PUBLIC_API_BASE_URL}
     depends_on:
       - backend
 
@@ -53,5 +53,21 @@ services:
       timeout: 5s
       retries: 5
 
+  https-portal:
+    image: steveltn/https-portal:1
+    ports:
+      - '80:80'
+      - '443:443'
+    environment:
+      DOMAINS: 'kasaneha.trasta.dev -> http://backend:8080, api.kasaneha.trasta.dev -> http://frontend:4321'
+      STAGE: 'local'
+      FORCE_RENEW: 'false'
+      CLIENT_MAX_BODY_SIZE: 0
+      WEBSOCKET: 'true'
+    restart: unless-stopped
+    volumes:
+      - https-portal_data:/var/lib/https-portal
+
 volumes:
   postgres_data:
+  https-portal_data:
