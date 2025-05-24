@@ -1,0 +1,57 @@
+services:
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: kasaneha_frontend_dev
+    ports:
+      - "4321:4321"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PUBLIC_API_BASE_URL=${PUBLIC_API_BASE_URL:-http://localhost:8080}
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend  
+      dockerfile: Dockerfile.dev
+    container_name: kasaneha_backend_dev
+    ports:
+      - "8080:8080"
+      - "6060:6060" # pprof
+    volumes:
+      - ./backend:/app
+    environment:
+      - ENV=development
+      - DATABASE_URL=postgres://kasaneha:password@postgres:5432/kasaneha_db?sslmode=disable
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - JWT_SECRET=dlasnofaewa
+      - HOST=0.0.0.0
+      - PORT=8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: kasaneha_postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=kasaneha
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=kasaneha_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kasaneha -d kasaneha_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

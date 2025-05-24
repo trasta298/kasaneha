@@ -1,0 +1,24 @@
+# Development Dockerfile for Kasaneha backend
+FROM golang:1.23-alpine
+
+# Install git and development tools
+RUN apk add --no-cache git
+RUN go install github.com/air-verse/air@latest
+
+# Set working directory
+WORKDIR /app
+
+# Copy go mod and sum files
+COPY go.mod go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Expose ports
+EXPOSE 8080 6060
+
+# Use Air for hot reload
+CMD ["air"] 

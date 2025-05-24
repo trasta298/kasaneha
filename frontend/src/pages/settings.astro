@@ -1,0 +1,660 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+---
+
+<Layout title="設定 - Kasaneha">
+  <div class="min-h-screen bg-gray-50">
+    <Navigation currentPath="/settings" />
+    
+    <div class="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <!-- Header -->
+      <div class="mb-8">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">設定</h1>
+        <p class="text-gray-600">アカウント情報やアプリの設定を管理できます</p>
+      </div>
+
+      <div class="space-y-6">
+        <!-- Profile settings -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="text-lg font-medium text-gray-900">プロフィール</h2>
+          </div>
+          <div class="card-body">
+            <form id="profile-form" class="space-y-6">
+              <div id="profile-message" class="hidden p-4 rounded-md"></div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label for="username" class="block text-sm font-medium text-gray-700 mb-1">
+                    ユーザー名
+                  </label>
+                  <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    class="form-input"
+                    placeholder="ユーザー名を入力"
+                    required
+                    minlength="3"
+                  />
+                  <p class="mt-1 text-xs text-gray-500">3文字以上で入力してください</p>
+                </div>
+
+                <div>
+                  <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+                    メールアドレス
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    class="form-input"
+                    placeholder="メールアドレスを入力"
+                  />
+                  <p class="mt-1 text-xs text-gray-500">パスワード忘れの際に使用します</p>
+                </div>
+              </div>
+
+              <div>
+                <label for="timezone" class="block text-sm font-medium text-gray-700 mb-1">
+                  タイムゾーン
+                </label>
+                <select id="timezone" name="timezone" class="form-input">
+                  <option value="Asia/Tokyo">日本標準時 (JST)</option>
+                  <option value="America/New_York">東部標準時 (EST)</option>
+                  <option value="America/Los_Angeles">太平洋標準時 (PST)</option>
+                  <option value="Europe/London">グリニッジ標準時 (GMT)</option>
+                  <option value="UTC">協定世界時 (UTC)</option>
+                </select>
+              </div>
+
+              <div class="flex justify-end">
+                <button type="submit" class="btn btn-primary" id="save-profile-btn">
+                  <span id="save-profile-text">変更を保存</span>
+                  <svg id="save-profile-spinner" class="hidden animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Password change -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="text-lg font-medium text-gray-900">パスワード変更</h2>
+          </div>
+          <div class="card-body">
+            <form id="password-form" class="space-y-6">
+              <div id="password-message" class="hidden p-4 rounded-md"></div>
+
+              <div>
+                <label for="current-password" class="block text-sm font-medium text-gray-700 mb-1">
+                  現在のパスワード
+                </label>
+                <input
+                  type="password"
+                  id="current-password"
+                  name="current-password"
+                  class="form-input"
+                  placeholder="現在のパスワード"
+                  required
+                />
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label for="new-password" class="block text-sm font-medium text-gray-700 mb-1">
+                    新しいパスワード
+                  </label>
+                  <input
+                    type="password"
+                    id="new-password"
+                    name="new-password"
+                    class="form-input"
+                    placeholder="新しいパスワード"
+                    required
+                    minlength="6"
+                  />
+                  <p class="mt-1 text-xs text-gray-500">6文字以上で入力してください</p>
+                </div>
+
+                <div>
+                  <label for="confirm-new-password" class="block text-sm font-medium text-gray-700 mb-1">
+                    新しいパスワード確認
+                  </label>
+                  <input
+                    type="password"
+                    id="confirm-new-password"
+                    name="confirm-new-password"
+                    class="form-input"
+                    placeholder="パスワードを再入力"
+                    required
+                    minlength="6"
+                  />
+                </div>
+              </div>
+
+              <div class="flex justify-end">
+                <button type="submit" class="btn btn-secondary" id="change-password-btn">
+                  <span id="change-password-text">パスワードを変更</span>
+                  <svg id="change-password-spinner" class="hidden animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- App preferences -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="text-lg font-medium text-gray-900">アプリケーション設定</h2>
+          </div>
+          <div class="card-body">
+            <form id="preferences-form" class="space-y-6">
+              <div id="preferences-message" class="hidden p-4 rounded-md"></div>
+
+              <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <label for="notifications" class="text-sm font-medium text-gray-900">
+                      通知設定
+                    </label>
+                    <p class="text-xs text-gray-500">日記のリマインダーを受け取る</p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="notifications" class="sr-only peer" checked>
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+
+                <div class="flex items-center justify-between">
+                  <div>
+                    <label for="auto-analysis" class="text-sm font-medium text-gray-900">
+                      自動分析
+                    </label>
+                    <p class="text-xs text-gray-500">セッション完了時に自動で感情分析を実行</p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="auto-analysis" class="sr-only peer" checked>
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+
+                <div class="flex items-center justify-between">
+                  <div>
+                    <label for="dark-mode" class="text-sm font-medium text-gray-900">
+                      ダークモード
+                    </label>
+                    <p class="text-xs text-gray-500">暗いテーマを使用する</p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="dark-mode" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+
+                <div>
+                  <label for="reminder-time" class="block text-sm font-medium text-gray-700 mb-1">
+                    リマインダー時刻
+                  </label>
+                  <input
+                    type="time"
+                    id="reminder-time"
+                    name="reminder-time"
+                    class="form-input max-w-xs"
+                    value="20:00"
+                  />
+                  <p class="mt-1 text-xs text-gray-500">日記を書くリマインダーの時刻</p>
+                </div>
+              </div>
+
+              <div class="flex justify-end">
+                <button type="submit" class="btn btn-primary" id="save-preferences-btn">
+                  <span id="save-preferences-text">設定を保存</span>
+                  <svg id="save-preferences-spinner" class="hidden animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Data management -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="text-lg font-medium text-gray-900">データ管理</h2>
+          </div>
+          <div class="card-body">
+            <div class="space-y-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-sm font-medium text-gray-900">データエクスポート</h3>
+                  <p class="text-xs text-gray-500">あなたの日記データをダウンロードできます</p>
+                </div>
+                <button class="btn btn-secondary text-sm" id="export-data-btn">
+                  <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  エクスポート
+                </button>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-sm font-medium text-gray-900">キャッシュクリア</h3>
+                  <p class="text-xs text-gray-500">アプリの一時データを削除します</p>
+                </div>
+                <button class="btn btn-secondary text-sm" id="clear-cache-btn">
+                  <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  クリア
+                </button>
+              </div>
+
+              <hr class="border-gray-200" />
+
+              <div class="bg-red-50 border border-red-200 rounded-md p-4">
+                <div class="flex items-start">
+                  <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                  <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800">危険な操作</h3>
+                    <div class="mt-2 text-sm text-red-700">
+                      <p>以下の操作は元に戻すことができません。実行前に十分ご注意ください。</p>
+                    </div>
+                    <div class="mt-4 space-y-3">
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <h4 class="text-sm font-medium text-red-800">全データ削除</h4>
+                          <p class="text-xs text-red-600">すべての日記データと分析結果を削除します</p>
+                        </div>
+                        <button class="btn btn-danger text-sm" id="delete-all-data-btn">
+                          すべて削除
+                        </button>
+                      </div>
+                      
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <h4 class="text-sm font-medium text-red-800">アカウント削除</h4>
+                          <p class="text-xs text-red-600">アカウントとすべてのデータを完全に削除します</p>
+                        </div>
+                        <button class="btn btn-danger text-sm" id="delete-account-btn">
+                          アカウント削除
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- App info -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="text-lg font-medium text-gray-900">アプリケーション情報</h2>
+          </div>
+          <div class="card-body">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h3 class="text-sm font-medium text-gray-900 mb-2">バージョン情報</h3>
+                <div class="space-y-2">
+                  <div class="flex justify-between">
+                    <span class="text-sm text-gray-600">アプリ版</span>
+                    <span class="text-sm font-mono">1.0.0</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-sm text-gray-600">ビルド</span>
+                    <span class="text-sm font-mono">2024.01.15</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h3 class="text-sm font-medium text-gray-900 mb-2">リンク</h3>
+                <div class="space-y-2">
+                  <a href="/terms" class="block text-sm text-blue-600 hover:text-blue-500">利用規約</a>
+                  <a href="/privacy" class="block text-sm text-blue-600 hover:text-blue-500">プライバシーポリシー</a>
+                  <a href="https://github.com/kasaneha/app" class="block text-sm text-blue-600 hover:text-blue-500" target="_blank">GitHub リポジトリ</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation modals -->
+  <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg p-6 max-w-md mx-4 w-full">
+      <div class="flex items-center mb-4">
+        <div class="h-10 w-10 bg-red-100 rounded-full flex items-center justify-center">
+          <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+        </div>
+        <h3 class="ml-3 text-lg font-medium text-gray-900" id="modal-title">確認</h3>
+      </div>
+      
+      <p class="text-gray-600 mb-6" id="modal-message">
+        この操作を実行しますか？
+      </p>
+      
+      <div class="flex space-x-3">
+        <button id="modal-cancel" class="flex-1 btn btn-secondary">
+          キャンセル
+        </button>
+        <button id="modal-confirm" class="flex-1 btn btn-danger">
+          実行
+        </button>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { $isAuthenticated, $user, authActions } from '../stores/auth';
+  import { notificationActions } from '../stores/notifications';
+
+  // Redirect if not authenticated
+  if (typeof window !== 'undefined') {
+    const checkAuth = () => {
+      if (!$isAuthenticated.get()) {
+        window.location.href = '/login';
+      }
+    };
+    checkAuth();
+    $isAuthenticated.subscribe(checkAuth);
+  }
+
+  // Initialize settings with user data
+  function initializeSettings() {
+    const user = $user.get();
+    if (!user) return;
+
+    // Populate profile form
+    const usernameInput = document.getElementById('username') as HTMLInputElement;
+    const emailInput = document.getElementById('email') as HTMLInputElement;
+    const timezoneSelect = document.getElementById('timezone') as HTMLSelectElement;
+
+    if (usernameInput) usernameInput.value = user.username;
+    if (emailInput) emailInput.value = user.email || '';
+    if (timezoneSelect) timezoneSelect.value = user.timezone || 'Asia/Tokyo';
+  }
+
+  // Show message helper
+  function showMessage(containerId: string, message: string, type: 'success' | 'error' = 'success') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const bgColor = type === 'success' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200';
+    const textColor = type === 'success' ? 'text-green-800' : 'text-red-800';
+
+    container.className = `p-4 rounded-md border ${bgColor}`;
+    container.innerHTML = `<p class="text-sm ${textColor}">${message}</p>`;
+    container.classList.remove('hidden');
+
+    setTimeout(() => {
+      container.classList.add('hidden');
+    }, 5000);
+  }
+
+  // Loading state helper
+  function setLoading(buttonId: string, textId: string, spinnerId: string, loading: boolean, text: string) {
+    const button = document.getElementById(buttonId) as HTMLButtonElement;
+    const textEl = document.getElementById(textId);
+    const spinner = document.getElementById(spinnerId);
+
+    if (button) button.disabled = loading;
+    if (textEl) textEl.textContent = loading ? `${text}中...` : text;
+    if (spinner) spinner.classList.toggle('hidden', !loading);
+  }
+
+  // Profile form submission
+  async function handleProfileSubmit(e: Event) {
+    e.preventDefault();
+    setLoading('save-profile-btn', 'save-profile-text', 'save-profile-spinner', true, '変更を保存');
+
+    const formData = new FormData(e.target as HTMLFormElement);
+    const username = formData.get('username') as string;
+    const email = formData.get('email') as string;
+    const timezone = formData.get('timezone') as string;
+
+    try {
+      // Mock API call - in real app, would update user profile
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      showMessage('profile-message', 'プロフィールが更新されました', 'success');
+      notificationActions.success('プロフィールが更新されました');
+    } catch (error) {
+      showMessage('profile-message', 'プロフィールの更新に失敗しました', 'error');
+    } finally {
+      setLoading('save-profile-btn', 'save-profile-text', 'save-profile-spinner', false, '変更を保存');
+    }
+  }
+
+  // Password form submission
+  async function handlePasswordSubmit(e: Event) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target as HTMLFormElement);
+    const currentPassword = formData.get('current-password') as string;
+    const newPassword = formData.get('new-password') as string;
+    const confirmPassword = formData.get('confirm-new-password') as string;
+
+    if (newPassword !== confirmPassword) {
+      showMessage('password-message', 'パスワードが一致しません', 'error');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      showMessage('password-message', 'パスワードは6文字以上で入力してください', 'error');
+      return;
+    }
+
+    setLoading('change-password-btn', 'change-password-text', 'change-password-spinner', true, 'パスワードを変更');
+
+    try {
+      // Mock API call - in real app, would change password
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      showMessage('password-message', 'パスワードが変更されました', 'success');
+      notificationActions.success('パスワードが変更されました');
+      
+      // Clear form
+      (e.target as HTMLFormElement).reset();
+    } catch (error) {
+      showMessage('password-message', 'パスワードの変更に失敗しました', 'error');
+    } finally {
+      setLoading('change-password-btn', 'change-password-text', 'change-password-spinner', false, 'パスワードを変更');
+    }
+  }
+
+  // Preferences form submission
+  async function handlePreferencesSubmit(e: Event) {
+    e.preventDefault();
+    setLoading('save-preferences-btn', 'save-preferences-text', 'save-preferences-spinner', true, '設定を保存');
+
+    const formData = new FormData(e.target as HTMLFormElement);
+    const notifications = document.getElementById('notifications') as HTMLInputElement;
+    const autoAnalysis = document.getElementById('auto-analysis') as HTMLInputElement;
+    const darkMode = document.getElementById('dark-mode') as HTMLInputElement;
+    const reminderTime = formData.get('reminder-time') as string;
+
+    try {
+      // Mock API call - in real app, would save preferences
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Apply dark mode immediately if changed
+      if (darkMode?.checked) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      
+      showMessage('preferences-message', '設定が保存されました', 'success');
+      notificationActions.success('設定が保存されました');
+    } catch (error) {
+      showMessage('preferences-message', '設定の保存に失敗しました', 'error');
+    } finally {
+      setLoading('save-preferences-btn', 'save-preferences-text', 'save-preferences-spinner', false, '設定を保存');
+    }
+  }
+
+  // Confirmation modal
+  function showConfirmationModal(title: string, message: string, onConfirm: () => void) {
+    const modal = document.getElementById('confirmation-modal');
+    const titleEl = document.getElementById('modal-title');
+    const messageEl = document.getElementById('modal-message');
+    const confirmBtn = document.getElementById('modal-confirm');
+    const cancelBtn = document.getElementById('modal-cancel');
+
+    if (!modal || !titleEl || !messageEl || !confirmBtn || !cancelBtn) return;
+
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+    modal.classList.remove('hidden');
+
+    const handleConfirm = () => {
+      modal.classList.add('hidden');
+      onConfirm();
+      confirmBtn.removeEventListener('click', handleConfirm);
+    };
+
+    const handleCancel = () => {
+      modal.classList.add('hidden');
+      confirmBtn.removeEventListener('click', handleConfirm);
+      cancelBtn.removeEventListener('click', handleCancel);
+    };
+
+    confirmBtn.addEventListener('click', handleConfirm);
+    cancelBtn.addEventListener('click', handleCancel);
+
+    // Close on background click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        handleCancel();
+      }
+    });
+  }
+
+  // Data management functions
+  async function exportData() {
+    try {
+      // Mock data export
+      const data = {
+        user: $user.get(),
+        sessions: [], // Would fetch actual session data
+        analyses: [], // Would fetch actual analysis data
+        exportDate: new Date().toISOString()
+      };
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `kasaneha-data-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      notificationActions.success('データをエクスポートしました');
+    } catch (error) {
+      notificationActions.error('データのエクスポートに失敗しました');
+    }
+  }
+
+  async function clearCache() {
+    try {
+      // Clear browser cache
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
+      }
+
+      // Clear localStorage
+      localStorage.removeItem('kasaneha_cache');
+      
+      notificationActions.success('キャッシュをクリアしました');
+    } catch (error) {
+      notificationActions.error('キャッシュのクリアに失敗しました');
+    }
+  }
+
+  async function deleteAllData() {
+    try {
+      // Mock API call to delete all user data
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      notificationActions.success('すべてのデータを削除しました');
+      // Redirect to empty state
+      window.location.href = '/';
+    } catch (error) {
+      notificationActions.error('データの削除に失敗しました');
+    }
+  }
+
+  async function deleteAccount() {
+    try {
+      // Mock API call to delete account
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      authActions.logout();
+      notificationActions.success('アカウントを削除しました');
+      window.location.href = '/login';
+    } catch (error) {
+      notificationActions.error('アカウントの削除に失敗しました');
+    }
+  }
+
+  // Event listeners
+  if (typeof window !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeSettings();
+
+      // Form submissions
+      document.getElementById('profile-form')?.addEventListener('submit', handleProfileSubmit);
+      document.getElementById('password-form')?.addEventListener('submit', handlePasswordSubmit);
+      document.getElementById('preferences-form')?.addEventListener('submit', handlePreferencesSubmit);
+
+      // Data management buttons
+      document.getElementById('export-data-btn')?.addEventListener('click', exportData);
+      document.getElementById('clear-cache-btn')?.addEventListener('click', clearCache);
+      
+      document.getElementById('delete-all-data-btn')?.addEventListener('click', () => {
+        showConfirmationModal(
+          'すべてのデータを削除',
+          'すべての日記データと分析結果を削除します。この操作は元に戻すことができません。本当に削除しますか？',
+          deleteAllData
+        );
+      });
+
+      document.getElementById('delete-account-btn')?.addEventListener('click', () => {
+        showConfirmationModal(
+          'アカウントを削除',
+          'アカウントとすべてのデータを完全に削除します。この操作は元に戻すことができません。本当に削除しますか？',
+          deleteAccount
+        );
+      });
+    });
+
+    // Update settings when user data changes
+    $user.subscribe(initializeSettings);
+  }
+</script> 

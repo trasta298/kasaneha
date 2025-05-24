@@ -1,0 +1,408 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+---
+
+<Layout title="ホーム - Kasaneha">
+  <div class="min-h-screen bg-gray-50">
+    <Navigation currentPath="/" />
+    
+    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <!-- Welcome header -->
+      <div class="mb-8">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">
+          おかえりなさい！
+        </h1>
+        <p class="text-gray-600" id="welcome-message">
+          今日の気持ちをかさねに話してみませんか？
+        </p>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Today's chat card -->
+        <div class="card hover:shadow-md transition-shadow cursor-pointer" id="today-chat-card">
+          <div class="card-body">
+            <div class="flex items-center">
+              <div class="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+              <div class="ml-4">
+                <h3 class="text-lg font-medium text-gray-900">今日のチャット</h3>
+                <p class="text-sm text-gray-500" id="today-status">かさねと話してみましょう</p>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="text-sm text-blue-600 font-medium">クリックして開始 →</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analysis card -->
+        <div class="card hover:shadow-md transition-shadow cursor-pointer" id="analysis-card">
+          <div class="card-body">
+            <div class="flex items-center">
+              <div class="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <div class="ml-4">
+                <h3 class="text-lg font-medium text-gray-900">感情分析</h3>
+                <p class="text-sm text-gray-500">あなたの心の状態を確認</p>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="text-sm text-green-600 font-medium">分析結果を見る →</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- History card -->
+        <div class="card hover:shadow-md transition-shadow cursor-pointer" id="history-card">
+          <div class="card-body">
+            <div class="flex items-center">
+              <div class="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <svg class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div class="ml-4">
+                <h3 class="text-lg font-medium text-gray-900">日記履歴</h3>
+                <p class="text-sm text-gray-500">過去の対話を振り返る</p>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="text-sm text-purple-600 font-medium">履歴を見る →</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard content -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Recent insights -->
+        <div class="lg:col-span-2">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="text-lg font-medium text-gray-900">最近のインサイト</h2>
+            </div>
+            <div class="card-body">
+              <div id="insights-container" class="space-y-4">
+                <!-- Loading state -->
+                <div class="flex items-center justify-center py-8" id="insights-loading">
+                  <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  <span class="ml-2 text-gray-500">インサイトを読み込み中...</span>
+                </div>
+                
+                <!-- Empty state -->
+                <div class="text-center py-8 hidden" id="insights-empty">
+                  <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                  <h3 class="mt-2 text-sm font-medium text-gray-900">まだインサイトがありません</h3>
+                  <p class="mt-1 text-sm text-gray-500">かさねと対話を始めて分析結果を確認しましょう</p>
+                  <div class="mt-6">
+                    <button class="btn btn-primary" onclick="window.location.href='/chat'">
+                      今日のチャットを始める
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Insights list -->
+                <div id="insights-list" class="hidden space-y-3">
+                  <!-- Insights will be populated here -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tension score overview -->
+        <div>
+          <div class="card">
+            <div class="card-header">
+              <h2 class="text-lg font-medium text-gray-900">テンションスコア</h2>
+            </div>
+            <div class="card-body">
+              <div id="tension-overview">
+                <!-- Loading state -->
+                <div class="flex items-center justify-center py-4" id="tension-loading">
+                  <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                  <span class="ml-2 text-sm text-gray-500">読み込み中...</span>
+                </div>
+                
+                <!-- Score display -->
+                <div class="hidden" id="tension-display">
+                  <div class="text-center">
+                    <div class="text-3xl font-bold text-gray-900" id="tension-score">--</div>
+                    <div class="text-sm text-gray-500 mb-4">7日間平均</div>
+                    
+                    <div class="bg-gray-200 rounded-full h-2 mb-4">
+                      <div class="bg-blue-500 h-2 rounded-full transition-all duration-300" id="tension-bar" style="width: 0%"></div>
+                    </div>
+                    
+                    <div class="text-sm" id="tension-trend">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                        <span id="trend-text">安定</span>
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div class="mt-4 pt-4 border-t border-gray-200">
+                    <button class="w-full btn btn-secondary text-sm" onclick="window.location.href='/analysis'">
+                      詳細を見る
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Empty state -->
+                <div class="text-center py-4 hidden" id="tension-empty">
+                  <p class="text-sm text-gray-500 mb-4">データがありません</p>
+                  <button class="btn btn-primary text-sm" onclick="window.location.href='/chat'">
+                    分析を開始
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick stats -->
+          <div class="mt-6 grid grid-cols-2 gap-4">
+            <div class="card">
+              <div class="card-body text-center">
+                <div class="text-2xl font-bold text-blue-600" id="total-sessions">--</div>
+                <div class="text-sm text-gray-500">総セッション数</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-body text-center">
+                <div class="text-2xl font-bold text-green-600" id="this-month">--</div>
+                <div class="text-sm text-gray-500">今月のセッション</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading overlay -->
+  <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg p-6 max-w-sm mx-4">
+      <div class="flex items-center">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+        <span class="ml-3 text-gray-700">読み込み中...</span>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { $user, $isAuthenticated, $isInitialized } from '../stores/auth';
+  import { apiClient } from '../api/client';
+
+  // Redirect to login if not authenticated (wait for initialization)
+  if (typeof window !== 'undefined') {
+    const checkAuth = () => {
+      const isInitialized = $isInitialized.get();
+      const isAuthenticated = $isAuthenticated.get();
+      
+      console.log('Auth check:', { isInitialized, isAuthenticated });
+      
+      if (isInitialized && !isAuthenticated) {
+        console.log('Not authenticated, redirecting to login...');
+        window.location.href = '/login';
+      }
+    };
+    
+    // Subscribe to initialization and auth changes
+    $isInitialized.subscribe(checkAuth);
+    $isAuthenticated.subscribe(checkAuth);
+  }
+
+  // Dashboard data loading
+  async function loadDashboardData() {
+    try {
+      // Load insights
+      await loadInsights();
+      
+      // Load tension score overview
+      await loadTensionOverview();
+      
+      // Load session stats
+      await loadSessionStats();
+      
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error);
+    }
+  }
+
+  async function loadInsights() {
+    const loading = document.getElementById('insights-loading');
+    const empty = document.getElementById('insights-empty');
+    const list = document.getElementById('insights-list');
+
+    try {
+      const response = await apiClient.getAnalysisInsights(7);
+      
+      loading?.classList.add('hidden');
+      
+      if (response.insights.length === 0) {
+        empty?.classList.remove('hidden');
+      } else {
+        list?.classList.remove('hidden');
+        displayInsights(response.insights);
+      }
+    } catch {
+      loading?.classList.add('hidden');
+      empty?.classList.remove('hidden');
+    }
+  }
+
+  interface Insight {
+    level: string;
+    message: string;
+    type: string;
+  }
+
+  function displayInsights(insights: Insight[]) {
+    const list = document.getElementById('insights-list');
+    if (!list) return;
+
+    list.innerHTML = insights.map(insight => `
+      <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+        <div class="flex-shrink-0">
+          <div class="h-2 w-2 bg-${insight.level === 'positive' ? 'green' : insight.level === 'attention' ? 'yellow' : 'blue'}-500 rounded-full mt-2"></div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm text-gray-800">${insight.message}</p>
+          <p class="text-xs text-gray-500 mt-1">${insight.type}</p>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function loadTensionOverview() {
+    const loading = document.getElementById('tension-loading');
+    const display = document.getElementById('tension-display');
+    const empty = document.getElementById('tension-empty');
+
+    try {
+      const response = await apiClient.getTensionScores(7);
+      
+      loading?.classList.add('hidden');
+      
+      if (response.scores.length === 0) {
+        empty?.classList.remove('hidden');
+      } else {
+        display?.classList.remove('hidden');
+        displayTensionScore(response.statistics);
+      }
+    } catch {
+      loading?.classList.add('hidden');
+      empty?.classList.remove('hidden');
+    }
+  }
+
+  interface TensionStats {
+    average: number;
+    trend: string;
+  }
+
+  function displayTensionScore(stats: TensionStats) {
+    const scoreEl = document.getElementById('tension-score');
+    const barEl = document.getElementById('tension-bar');
+    const trendEl = document.getElementById('trend-text');
+
+    if (scoreEl) scoreEl.textContent = Math.round(stats.average).toString();
+    if (barEl) barEl.style.width = `${stats.average}%`;
+    
+    if (trendEl) {
+      const trendText = stats.trend === 'improving' ? '改善中' : 
+                      stats.trend === 'declining' ? '注意' : '安定';
+      trendEl.textContent = trendText;
+      
+      const trendContainer = trendEl.parentElement;
+      if (trendContainer) {
+        trendContainer.className = `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          stats.trend === 'improving' ? 'bg-green-100 text-green-800' :
+          stats.trend === 'declining' ? 'bg-red-100 text-red-800' :
+          'bg-gray-100 text-gray-800'
+        }`;
+      }
+    }
+  }
+
+  async function loadSessionStats() {
+    try {
+      // Get total sessions count (using a large limit to get all sessions)
+      const totalResponse = await apiClient.getUserSessions({ limit: 1000 });
+      const totalSessions = totalResponse.pagination.total;
+
+      // Get current month's sessions
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
+      
+      const monthResponse = await apiClient.getUserSessions({ 
+        limit: 100, 
+        year: currentYear, 
+        month: currentMonth 
+      });
+      const thisMonthSessions = monthResponse.pagination.total;
+
+      // Update the display
+      const totalSessionsEl = document.getElementById('total-sessions');
+      const thisMonthEl = document.getElementById('this-month');
+      
+      if (totalSessionsEl) totalSessionsEl.textContent = totalSessions.toString();
+      if (thisMonthEl) thisMonthEl.textContent = thisMonthSessions.toString();
+    } catch (error) {
+      console.error('Failed to load session stats:', error);
+      // Fall back to placeholder if API fails
+      const totalSessionsEl = document.getElementById('total-sessions');
+      const thisMonthEl = document.getElementById('this-month');
+      
+      if (totalSessionsEl) totalSessionsEl.textContent = '--';
+      if (thisMonthEl) thisMonthEl.textContent = '--';
+    }
+  }
+
+  // Card click handlers
+  document.getElementById('today-chat-card')?.addEventListener('click', () => {
+    window.location.href = '/chat';
+  });
+
+  document.getElementById('analysis-card')?.addEventListener('click', () => {
+    window.location.href = '/analysis';
+  });
+
+  document.getElementById('history-card')?.addEventListener('click', () => {
+    window.location.href = '/history';
+  });
+
+  // Update welcome message with user name
+  const updateWelcomeMessage = () => {
+    const user = $user.get();
+    const messageEl = document.getElementById('welcome-message');
+    if (user && messageEl) {
+      const hour = new Date().getHours();
+      const timeGreeting = hour < 12 ? 'おはようございます' : 
+                          hour < 18 ? 'こんにちは' : 'こんばんは';
+      messageEl.textContent = `${timeGreeting}、${user.username}さん！今日の気持ちをかさねに話してみませんか？`;
+    }
+  };
+
+  // Initialize dashboard
+  if (typeof window !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+      updateWelcomeMessage();
+      loadDashboardData();
+    });
+
+    $user.subscribe(updateWelcomeMessage);
+  }
+</script> 

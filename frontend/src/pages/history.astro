@@ -1,0 +1,636 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+---
+
+<Layout title="履歴 - Kasaneha">
+  <div class="min-h-screen bg-gray-50">
+    <Navigation currentPath="/history" />
+    
+    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <!-- Header -->
+      <div class="mb-8">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">日記履歴</h1>
+        <p class="text-gray-600">過去の対話を振り返って、心の成長を確認しましょう</p>
+      </div>
+
+      <!-- View selector -->
+      <div class="mb-6">
+        <div class="flex flex-wrap gap-2">
+          <button 
+            class="btn btn-primary text-sm" 
+            data-view="calendar"
+            id="view-calendar"
+          >
+            <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            カレンダー
+          </button>
+          <button 
+            class="btn btn-secondary text-sm" 
+            data-view="list"
+            id="view-list"
+          >
+            <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            </svg>
+            リスト
+          </button>
+        </div>
+      </div>
+
+      <!-- Calendar view -->
+      <div id="calendar-view" class="block">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <!-- Calendar -->
+          <div class="lg:col-span-3">
+            <div class="card">
+              <div class="card-header">
+                <div class="flex items-center justify-between">
+                  <h2 class="text-lg font-medium text-gray-900" id="calendar-title">
+                    2024年 1月
+                  </h2>
+                  <div class="flex items-center space-x-2">
+                    <button 
+                      class="btn btn-secondary text-sm p-2"
+                      id="prev-month"
+                      title="前の月"
+                    >
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <button 
+                      class="btn btn-primary text-sm"
+                      id="today-btn"
+                    >
+                      今日
+                    </button>
+                    <button 
+                      class="btn btn-secondary text-sm p-2"
+                      id="next-month"
+                      title="次の月"
+                    >
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="card-body p-0">
+                <!-- Loading state -->
+                <div class="flex items-center justify-center py-12" id="calendar-loading">
+                  <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  <span class="ml-2 text-gray-500">カレンダーを読み込み中...</span>
+                </div>
+
+                <!-- Calendar grid -->
+                <div class="hidden" id="calendar-grid">
+                  <!-- Day headers -->
+                  <div class="grid grid-cols-7 bg-gray-50">
+                    <div class="p-3 text-center text-sm font-medium text-gray-700">日</div>
+                    <div class="p-3 text-center text-sm font-medium text-gray-700">月</div>
+                    <div class="p-3 text-center text-sm font-medium text-gray-700">火</div>
+                    <div class="p-3 text-center text-sm font-medium text-gray-700">水</div>
+                    <div class="p-3 text-center text-sm font-medium text-gray-700">木</div>
+                    <div class="p-3 text-center text-sm font-medium text-gray-700">金</div>
+                    <div class="p-3 text-center text-sm font-medium text-gray-700">土</div>
+                  </div>
+                  
+                  <!-- Calendar days -->
+                  <div class="grid grid-cols-7" id="calendar-days">
+                    <!-- Days will be populated here -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selected day info -->
+          <div>
+            <div class="card mb-6">
+              <div class="card-header">
+                <h3 class="text-lg font-medium text-gray-900">選択した日</h3>
+              </div>
+              <div class="card-body">
+                <div id="selected-day-info">
+                  <div class="text-center py-8" id="no-selection">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p class="mt-2 text-sm text-gray-500">日付を選択してください</p>
+                  </div>
+                  
+                  <!-- Selected day content -->
+                  <div class="hidden" id="selected-day-content">
+                    <div class="text-center mb-4">
+                      <div class="text-lg font-medium text-gray-900" id="selected-date">--</div>
+                      <div class="text-sm text-gray-500" id="selected-day">--</div>
+                    </div>
+                    
+                    <div id="day-session-info" class="hidden">
+                      <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                          <span class="text-sm text-gray-600">メッセージ数</span>
+                          <span class="text-sm font-medium" id="day-message-count">--</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                          <span class="text-sm text-gray-600">テンションスコア</span>
+                          <span class="text-sm font-medium" id="day-tension-score">--</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                          <span class="text-sm text-gray-600">ステータス</span>
+                          <span class="text-sm font-medium" id="day-status">--</span>
+                        </div>
+                      </div>
+                      
+                      <div class="mt-4 pt-4 border-t border-gray-200">
+                        <button 
+                          class="w-full btn btn-primary text-sm"
+                          id="view-session-btn"
+                        >
+                          詳細を見る
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div id="day-no-session" class="hidden text-center py-4">
+                      <p class="text-sm text-gray-500 mb-4">この日は日記を書いていません</p>
+                      <button 
+                        class="btn btn-primary text-sm"
+                        onclick="window.location.href='/chat'"
+                      >
+                        今日のチャットを始める
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Monthly summary -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="text-lg font-medium text-gray-900">今月の統計</h3>
+              </div>
+              <div class="card-body">
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">対話日数</span>
+                    <span class="text-sm font-medium" id="month-session-days">--</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">総メッセージ</span>
+                    <span class="text-sm font-medium" id="month-total-messages">--</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">平均スコア</span>
+                    <span class="text-sm font-medium" id="month-avg-score">--</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- List view -->
+      <div id="list-view" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <div class="flex items-center justify-between">
+              <h2 class="text-lg font-medium text-gray-900">セッション一覧</h2>
+              <div class="flex items-center space-x-2">
+                <select class="form-input text-sm py-2" id="list-filter">
+                  <option value="all">すべて</option>
+                  <option value="completed">完了済み</option>
+                  <option value="active">進行中</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <!-- Loading state -->
+            <div class="flex items-center justify-center py-12" id="list-loading">
+              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <span class="ml-2 text-gray-500">履歴を読み込み中...</span>
+            </div>
+
+            <!-- Sessions list -->
+            <div class="hidden" id="sessions-list">
+              <!-- Sessions will be populated here -->
+            </div>
+
+            <!-- Empty state -->
+            <div class="text-center py-12 hidden" id="list-empty">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">まだ日記がありません</h3>
+              <p class="mt-1 text-sm text-gray-500">かさねと対話を始めて日記を作成しましょう</p>
+              <div class="mt-6">
+                <button class="btn btn-primary" onclick="window.location.href='/chat'">
+                  今日のチャットを始める
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-6 flex items-center justify-between" id="pagination" style="display: none;">
+          <div class="text-sm text-gray-700">
+            <span id="pagination-info">1-10 of 100 items</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button class="btn btn-secondary text-sm" id="prev-page" disabled>
+              前へ
+            </button>
+            <button class="btn btn-secondary text-sm" id="next-page">
+              次へ
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { $isAuthenticated, $isInitialized } from '../stores/auth';
+  import { apiClient } from '../api/client';
+  import { notificationActions } from '../stores/notifications';
+
+  // Type definitions
+  interface CalendarDay {
+    date: string;
+    has_session: boolean;
+    tension_score?: number;
+    status?: string;
+    message_count?: number;
+  }
+
+  interface CalendarData {
+    year: number;
+    month: number;
+    days: CalendarDay[];
+  }
+
+  interface SessionSummary {
+    id: string;
+    date: string;
+    status: string;
+    created_at: string;
+    updated_at: string;
+    message_count: number;
+    has_analysis: boolean;
+  }
+
+  // Redirect if not authenticated (wait for initialization)
+  if (typeof window !== 'undefined') {
+    const checkAuth = () => {
+      const isInitialized = $isInitialized.get();
+      const isAuthenticated = $isAuthenticated.get();
+      
+      console.log('History auth check:', { isInitialized, isAuthenticated });
+      
+      if (isInitialized && !isAuthenticated) {
+        console.log('Not authenticated, redirecting to login...');
+        window.location.href = '/login';
+      }
+    };
+    
+    // Subscribe to initialization and auth changes
+    $isInitialized.subscribe(checkAuth);
+    $isAuthenticated.subscribe(checkAuth);
+  }
+
+  // Current state
+  let currentView = 'calendar';
+  let currentDate = new Date();
+  let calendarData: CalendarData | null = null;
+
+  // Helper function to format date as YYYY-MM-DD in local timezone
+  function formatDateString(date: Date): string {
+    return date.getFullYear() + '-' + 
+      String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+      String(date.getDate()).padStart(2, '0');
+  }
+
+  // Load history data
+  async function loadHistoryData() {
+    if (currentView === 'calendar') {
+      await loadCalendarData();
+    } else {
+      await loadSessionsList();
+    }
+  }
+
+  async function loadCalendarData() {
+    const loading = document.getElementById('calendar-loading');
+    const grid = document.getElementById('calendar-grid');
+
+    try {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth() + 1;
+      
+      const response = await apiClient.getCalendarData(year, month);
+      calendarData = response.month_data;
+      
+      loading?.classList.add('hidden');
+      grid?.classList.remove('hidden');
+      
+      renderCalendar();
+      updateMonthlyStats();
+    } catch (error) {
+      console.error('Failed to load calendar data:', error);
+      loading?.classList.add('hidden');
+      notificationActions.error('カレンダーデータの読み込みに失敗しました');
+    }
+  }
+
+  function renderCalendar() {
+    const title = document.getElementById('calendar-title');
+    const daysContainer = document.getElementById('calendar-days');
+    
+    if (!title || !daysContainer || !calendarData) return;
+
+    // Update title
+    title.textContent = `${calendarData.year}年 ${calendarData.month}月`;
+
+    // Clear existing days
+    daysContainer.innerHTML = '';
+
+    // Get first day of month and number of days
+    const firstDay = new Date(calendarData.year, calendarData.month - 1, 1);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+    // Generate 42 days (6 weeks)
+    for (let i = 0; i < 42; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
+      
+      // Format date as YYYY-MM-DD in local timezone to avoid timezone offset issues
+      const localDateString = formatDateString(date);
+      
+      const dayData = calendarData.days.find((d: CalendarDay) => d.date === localDateString);
+      const isCurrentMonth = date.getMonth() === calendarData.month - 1;
+      const isToday = date.toDateString() === new Date().toDateString();
+      const hasSession = dayData?.has_session || false;
+
+      let dayClasses = 'relative p-2 sm:p-3 text-center cursor-pointer border-r border-b border-gray-200 hover:bg-gray-50 transition-colors';
+      
+      if (!isCurrentMonth) {
+        dayClasses += ' text-gray-400 bg-gray-50';
+      } else if (isToday) {
+        dayClasses += ' bg-blue-50 text-blue-700 font-semibold';
+      } else {
+        dayClasses += ' text-gray-900';
+      }
+
+      if (hasSession) {
+        dayClasses += ' bg-green-50';
+      }
+
+      const dayElement = document.createElement('div');
+      dayElement.className = dayClasses;
+      dayElement.dataset.date = localDateString;
+      
+      dayElement.innerHTML = `
+        <div class="text-sm sm:text-base">${date.getDate()}</div>
+        ${hasSession ? `
+          <div class="absolute bottom-1 left-1/2 transform -translate-x-1/2">
+            <div class="w-2 h-2 bg-green-500 rounded-full ${dayData?.tension_score ? getTensionColorClass(dayData.tension_score) : ''}"></div>
+          </div>
+        ` : ''}
+      `;
+
+      dayElement.addEventListener('click', () => selectDate(date, dayData));
+      daysContainer.appendChild(dayElement);
+    }
+  }
+
+  function getTensionColorClass(score: number): string {
+    if (score >= 80) return 'bg-green-500';
+    if (score >= 60) return 'bg-blue-500';
+    if (score >= 40) return 'bg-yellow-500';
+    if (score >= 20) return 'bg-orange-500';
+    return 'bg-red-500';
+  }
+
+  function selectDate(date: Date, dayData: CalendarDay | undefined) {
+    // Remove previous selection
+    document.querySelectorAll('[data-date]').forEach(el => {
+      el.classList.remove('ring-2', 'ring-blue-500');
+    });
+    
+    // Add selection ring
+    const localDateString = formatDateString(date);
+    const dayElement = document.querySelector(`[data-date="${localDateString}"]`);
+    dayElement?.classList.add('ring-2', 'ring-blue-500');
+
+    displaySelectedDay(date, dayData);
+  }
+
+  function displaySelectedDay(date: Date, dayData: CalendarDay | undefined) {
+    const noSelection = document.getElementById('no-selection');
+    const selectedContent = document.getElementById('selected-day-content');
+    const selectedDateEl = document.getElementById('selected-date');
+    const selectedDayEl = document.getElementById('selected-day');
+    const sessionInfo = document.getElementById('day-session-info');
+    const noSession = document.getElementById('day-no-session');
+
+    noSelection?.classList.add('hidden');
+    selectedContent?.classList.remove('hidden');
+
+    if (selectedDateEl) {
+      selectedDateEl.textContent = date.toLocaleDateString('ja-JP', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+    }
+    
+    if (selectedDayEl) {
+      selectedDayEl.textContent = date.toLocaleDateString('ja-JP', { weekday: 'long' });
+    }
+
+    if (dayData?.has_session) {
+      sessionInfo?.classList.remove('hidden');
+      noSession?.classList.add('hidden');
+      
+      // Update session info
+      const messageCount = document.getElementById('day-message-count');
+      const tensionScore = document.getElementById('day-tension-score');
+      const status = document.getElementById('day-status');
+      const viewBtn = document.getElementById('view-session-btn');
+
+      if (messageCount) messageCount.textContent = dayData.message_count ? `${dayData.message_count}件` : '--';
+      if (tensionScore) tensionScore.textContent = dayData.tension_score ? `${Math.round(dayData.tension_score)}点` : '--';
+      if (status) status.textContent = dayData.status === 'completed' ? '完了' : '進行中';
+      
+      if (viewBtn) {
+        viewBtn.onclick = () => {
+          // Navigate to chat page with date parameter
+          const dateString = formatDateString(date);
+          window.location.href = `/chat?date=${dateString}`;
+        };
+      }
+    } else {
+      sessionInfo?.classList.add('hidden');
+      noSession?.classList.remove('hidden');
+    }
+  }
+
+  function updateMonthlyStats() {
+    const sessionDays = document.getElementById('month-session-days');
+    const totalMessages = document.getElementById('month-total-messages');
+    const avgScore = document.getElementById('month-avg-score');
+
+    if (!calendarData) return;
+
+    const daysWithSession = calendarData.days.filter((d: CalendarDay) => d.has_session).length;
+    
+    // Calculate total messages from actual data
+    const totalMessageCount = calendarData.days
+      .filter((d: CalendarDay) => d.has_session && d.message_count)
+      .reduce((sum: number, d: CalendarDay) => sum + (d.message_count || 0), 0);
+    
+    const totalScore = calendarData.days
+      .filter((d: CalendarDay) => d.tension_score)
+      .reduce((sum: number, d: CalendarDay) => sum + (d.tension_score || 0), 0);
+    const scoreCount = calendarData.days.filter((d: CalendarDay) => d.tension_score).length;
+
+    if (sessionDays) sessionDays.textContent = `${daysWithSession}日`;
+    if (totalMessages) totalMessages.textContent = totalMessageCount > 0 ? `${totalMessageCount}件` : '--';
+    if (avgScore) avgScore.textContent = scoreCount > 0 ? `${Math.round(totalScore / scoreCount)}点` : '--';
+  }
+
+  async function loadSessionsList() {
+    const loading = document.getElementById('list-loading');
+    const list = document.getElementById('sessions-list');
+    const empty = document.getElementById('list-empty');
+
+    try {
+      const response = await apiClient.getUserSessions({ limit: 20 });
+      
+      loading?.classList.add('hidden');
+      
+      if (response.sessions.length === 0) {
+        empty?.classList.remove('hidden');
+      } else {
+        list?.classList.remove('hidden');
+        renderSessionsList(response.sessions);
+      }
+    } catch (error) {
+      loading?.classList.add('hidden');
+      empty?.classList.remove('hidden');
+      console.error('Failed to load sessions:', error);
+    }
+  }
+
+  function renderSessionsList(sessions: SessionSummary[]) {
+    const list = document.getElementById('sessions-list');
+    if (!list) return;
+
+    list.innerHTML = sessions.map(session => {
+      const date = new Date(session.date).toLocaleDateString('ja-JP', {
+        year: 'numeric',
+        month: 'long', 
+        day: 'numeric',
+        weekday: 'short'
+      });
+
+      const statusColors = {
+        completed: 'bg-green-100 text-green-800',
+        active: 'bg-blue-100 text-blue-800'
+      } as const;
+
+      const statusText = {
+        completed: '完了',
+        active: '進行中'
+      } as const;
+
+      return `
+        <div class="border-b border-gray-200 p-4 hover:bg-gray-50 cursor-pointer" 
+             onclick="window.location.href='/chat?sessionId=${session.id}'">
+          <div class="flex items-center justify-between">
+            <div class="flex-1">
+              <div class="flex items-center space-x-3">
+                <div class="text-sm font-medium text-gray-900">${date}</div>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[session.status as keyof typeof statusColors]}">
+                  ${statusText[session.status as keyof typeof statusText]}
+                </span>
+              </div>
+              <div class="mt-1 text-sm text-gray-500">
+                ${session.message_count}件のメッセージ
+                ${session.has_analysis ? ' • 分析完了' : ''}
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-sm text-gray-500">
+                ${new Date(session.created_at).toLocaleTimeString('ja-JP', { 
+                  hour: '2-digit', 
+                  minute: '2-digit' 
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function switchView(view: 'calendar' | 'list') {
+    currentView = view;
+    
+    const calendarView = document.getElementById('calendar-view');
+    const listView = document.getElementById('list-view');
+    const calendarBtn = document.getElementById('view-calendar');
+    const listBtn = document.getElementById('view-list');
+
+    if (view === 'calendar') {
+      calendarView?.classList.remove('hidden');
+      listView?.classList.add('hidden');
+      calendarBtn?.classList.replace('btn-secondary', 'btn-primary');
+      listBtn?.classList.replace('btn-primary', 'btn-secondary');
+    } else {
+      calendarView?.classList.add('hidden');
+      listView?.classList.remove('hidden');
+      calendarBtn?.classList.replace('btn-primary', 'btn-secondary');
+      listBtn?.classList.replace('btn-secondary', 'btn-primary');
+    }
+
+    loadHistoryData();
+  }
+
+  function changeMonth(delta: number) {
+    currentDate.setMonth(currentDate.getMonth() + delta);
+    loadCalendarData();
+  }
+
+  function goToToday() {
+    currentDate = new Date();
+    loadCalendarData();
+  }
+
+  // Event listeners
+  if (typeof window !== 'undefined') {
+    // View switching
+    document.getElementById('view-calendar')?.addEventListener('click', () => switchView('calendar'));
+    document.getElementById('view-list')?.addEventListener('click', () => switchView('list'));
+
+    // Calendar navigation
+    document.getElementById('prev-month')?.addEventListener('click', () => changeMonth(-1));
+    document.getElementById('next-month')?.addEventListener('click', () => changeMonth(1));
+    document.getElementById('today-btn')?.addEventListener('click', goToToday);
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      loadHistoryData();
+    });
+  }
+</script> 

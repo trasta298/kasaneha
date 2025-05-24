@@ -1,0 +1,316 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+  noindex?: boolean;
+}
+
+const { title, description = 'AIと対話して感情を分析する日記アプリ', noindex = false } = Astro.props;
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+
+    {noindex && <meta name="robots" content="noindex" />}
+
+    <!-- PWA related meta tags -->
+    <meta name="theme-color" content="#1f2937" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Kasaneha" />
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="font-sans antialiased bg-gray-50 text-gray-900 min-h-screen">
+    <!-- Global notification container -->
+    <div id="notifications" class="fixed top-4 right-4 z-50 space-y-2"></div>
+    
+    <!-- Main content -->
+    <slot />
+
+    <!-- PWA機能は無効化されているため、Service Worker登録は不要 -->
+  </body>
+</html>
+
+<style is:global>
+  /* Global styles */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+
+  /* Loading animation */
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+
+  /* Fade in animation */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  /* Message bubble styles with material design */
+  .message-bubble {
+    word-wrap: break-word;
+    animation: fadeIn 0.3s ease-out;
+    position: relative;
+    margin-bottom: 0; /* Remove default margin since we handle spacing in layout */
+  }
+
+  .message-bubble.user {
+    @apply bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl rounded-br-lg shadow-md;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  }
+
+  .message-bubble.ai {
+    @apply bg-white border border-gray-200 text-gray-900 rounded-2xl rounded-bl-lg shadow-sm;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .message-bubble.user:hover {
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+  }
+
+  .message-bubble.ai:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border-color: #e5e7eb;
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+  }
+
+  /* Message bubble tail effect (subtle) */
+  .message-bubble.user::after {
+    content: '';
+    position: absolute;
+    bottom: 8px;
+    right: -6px;
+    width: 0;
+    height: 0;
+    border-left: 6px solid;
+    border-left-color: inherit;
+    border-bottom: 6px solid transparent;
+    border-top: 6px solid transparent;
+  }
+
+  .message-bubble.ai::after {
+    content: '';
+    position: absolute;
+    bottom: 8px;
+    left: -6px;
+    width: 0;
+    height: 0;
+    border-right: 6px solid #ffffff;
+    border-bottom: 6px solid transparent;
+    border-top: 6px solid transparent;
+  }
+
+  /* Form input styles */
+  .form-input {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors;
+  }
+
+  .form-input:focus {
+    @apply outline-none;
+  }
+
+  /* Button styles */
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .btn-primary {
+    @apply bg-blue-500 text-white hover:bg-blue-600 focus:ring-blue-500;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-500 text-white hover:bg-gray-600 focus:ring-gray-500;
+  }
+
+  .btn-success {
+    @apply bg-green-500 text-white hover:bg-green-600 focus:ring-green-500;
+  }
+
+  .btn-danger {
+    @apply bg-red-500 text-white hover:bg-red-600 focus:ring-red-500;
+  }
+
+  /* Card styles */
+  .card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-200;
+  }
+
+  .card-header {
+    @apply px-6 py-4 border-b border-gray-200;
+  }
+
+  .card-body {
+    @apply px-6 py-4;
+  }
+
+  /* Navigation styles */
+  .nav-link {
+    @apply flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors;
+  }
+
+  .nav-link.active {
+    @apply bg-blue-100 text-blue-700;
+  }
+
+  .nav-link:not(.active) {
+    @apply text-gray-600 hover:text-gray-900 hover:bg-gray-50;
+  }
+
+  /* Additional material design animations and effects */
+  
+  /* Slide up animation for messages */
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+
+  /* Bounce animation for typing dots */
+  @keyframes bounce {
+    0%, 20%, 53%, 80%, 100% {
+      transform: translate3d(0, 0, 0);
+    }
+    40%, 43% {
+      transform: translate3d(0, -8px, 0);
+    }
+    70% {
+      transform: translate3d(0, -4px, 0);
+    }
+    90% {
+      transform: translate3d(0, -2px, 0);
+    }
+  }
+
+  .animate-bounce {
+    animation: bounce 1.4s ease-in-out infinite;
+  }
+
+  /* Elevation shadows for material design */
+  .elevation-1 {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  }
+
+  .elevation-2 {
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  }
+
+  .elevation-3 {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+  }
+
+  /* Improved button hover effects */
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+    transform: translateY(0);
+  }
+
+  .btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .btn:active {
+    transform: translateY(0);
+  }
+
+  /* Enhanced input focus states */
+  .form-input {
+    @apply transition-all duration-200;
+  }
+
+  .form-input:focus {
+    transform: none;
+  }
+
+  /* Textarea specific styling */
+  textarea {
+    @apply transition-all duration-200;
+  }
+
+  textarea:focus {
+    transform: none;
+    outline: none;
+  }
+
+  /* Glassmorphism effect */
+  .glass {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* Improved card hover effects */
+  .card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 transition-all duration-200;
+  }
+
+  .card:hover {
+    @apply shadow-md;
+    transform: translateY(-2px);
+  }
+</style> 

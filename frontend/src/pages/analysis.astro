@@ -1,0 +1,566 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+---
+
+<Layout title="分析結果 - Kasaneha">
+  <div class="min-h-screen bg-gray-50">
+    <Navigation currentPath="/analysis" />
+    
+    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <!-- Header -->
+      <div class="mb-8">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">感情分析</h1>
+        <p class="text-gray-600">あなたの心の状態を詳しく確認できます</p>
+      </div>
+
+      <!-- Time period selector -->
+      <div class="mb-6">
+        <div class="flex flex-wrap gap-2">
+          <button 
+            class="btn btn-primary text-sm" 
+            data-period="7"
+            id="period-7"
+          >
+            7日間
+          </button>
+          <button 
+            class="btn btn-secondary text-sm" 
+            data-period="30"
+            id="period-30"
+          >
+            30日間
+          </button>
+          <button 
+            class="btn btn-secondary text-sm" 
+            data-period="90"
+            id="period-90"
+          >
+            90日間
+          </button>
+        </div>
+      </div>
+
+      <!-- Analysis content -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Tension score chart -->
+        <div class="lg:col-span-2">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="text-lg font-medium text-gray-900">テンションスコア推移</h2>
+            </div>
+            <div class="card-body">
+              <div id="tension-chart-container">
+                <!-- Loading state -->
+                <div class="flex items-center justify-center py-12" id="chart-loading">
+                  <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  <span class="ml-2 text-gray-500">グラフを読み込み中...</span>
+                </div>
+                
+                <!-- Chart will be rendered here -->
+                <canvas id="tension-chart" class="w-full h-64 hidden"></canvas>
+                
+                <!-- Empty state -->
+                <div class="text-center py-12 hidden" id="chart-empty">
+                  <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  <h3 class="mt-2 text-sm font-medium text-gray-900">データがありません</h3>
+                  <p class="mt-1 text-sm text-gray-500">日記を書いて分析データを蓄積しましょう</p>
+                  <div class="mt-6">
+                    <button class="btn btn-primary" onclick="window.location.href='/chat'">
+                      今日のチャットを始める
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statistics summary -->
+        <div>
+          <div class="card mb-6">
+            <div class="card-header">
+              <h2 class="text-lg font-medium text-gray-900">統計情報</h2>
+            </div>
+            <div class="card-body">
+              <div id="stats-container">
+                <!-- Loading state -->
+                <div class="flex items-center justify-center py-4" id="stats-loading">
+                  <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                  <span class="ml-2 text-sm text-gray-500">読み込み中...</span>
+                </div>
+                
+                <!-- Stats display -->
+                <div class="hidden" id="stats-display">
+                  <div class="space-y-4">
+                    <div class="text-center">
+                      <div class="text-2xl font-bold text-blue-600" id="avg-score">--</div>
+                      <div class="text-sm text-gray-500">平均スコア</div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                      <div>
+                        <div class="text-lg font-semibold text-green-600" id="max-score">--</div>
+                        <div class="text-xs text-gray-500">最高</div>
+                      </div>
+                      <div>
+                        <div class="text-lg font-semibold text-red-600" id="min-score">--</div>
+                        <div class="text-xs text-gray-500">最低</div>
+                      </div>
+                    </div>
+                    
+                    <div class="text-center">
+                      <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium" id="trend-indicator">
+                        <span id="trend-icon"></span>
+                        <span id="trend-text">分析中</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick actions -->
+          <div class="space-y-3">
+            <button 
+              class="w-full btn btn-primary text-sm"
+              onclick="window.location.href='/chat'"
+            >
+              今日のチャットを始める
+            </button>
+            <button 
+              class="w-full btn btn-secondary text-sm"
+              onclick="window.location.href='/history'"
+            >
+              履歴を確認する
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed insights -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Recent insights -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="text-lg font-medium text-gray-900">最近のインサイト</h2>
+          </div>
+          <div class="card-body">
+            <div id="insights-container">
+              <!-- Loading state -->
+              <div class="flex items-center justify-center py-8" id="insights-loading">
+                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                <span class="ml-2 text-sm text-gray-500">読み込み中...</span>
+              </div>
+              
+              <!-- Insights list -->
+              <div id="insights-list" class="hidden space-y-3">
+                <!-- Insights will be populated here -->
+              </div>
+              
+              <!-- Empty state -->
+              <div class="text-center py-8 hidden" id="insights-empty">
+                <p class="text-sm text-gray-500">まだインサイトがありません</p>
+                <button class="btn btn-primary text-sm mt-4" onclick="window.location.href='/chat'">
+                  分析を開始
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Emotion breakdown -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="text-lg font-medium text-gray-900">感情の内訳</h2>
+          </div>
+          <div class="card-body">
+            <div id="emotions-container">
+              <!-- Loading state -->
+              <div class="flex items-center justify-center py-8" id="emotions-loading">
+                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                <span class="ml-2 text-sm text-gray-500">読み込み中...</span>
+              </div>
+              
+              <!-- Emotions display -->
+              <div id="emotions-list" class="hidden space-y-3">
+                <!-- Emotions will be populated here -->
+              </div>
+              
+              <!-- Empty state -->
+              <div class="text-center py-8 hidden" id="emotions-empty">
+                <p class="text-sm text-gray-500">感情データがありません</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { $isAuthenticated, $isInitialized } from '../stores/auth';
+  import { apiClient } from '../api/client';
+  import { notificationActions } from '../stores/notifications';
+
+  // Redirect if not authenticated (wait for initialization)
+  if (typeof window !== 'undefined') {
+    const checkAuth = () => {
+      const isInitialized = $isInitialized.get();
+      const isAuthenticated = $isAuthenticated.get();
+      
+      console.log('Analysis auth check:', { isInitialized, isAuthenticated });
+      
+      if (isInitialized && !isAuthenticated) {
+        console.log('Not authenticated, redirecting to login...');
+        window.location.href = '/login';
+      }
+    };
+    
+    // Subscribe to initialization and auth changes
+    $isInitialized.subscribe(checkAuth);
+    $isAuthenticated.subscribe(checkAuth);
+  }
+
+  // Current period
+  let currentPeriod = 7;
+
+  // Chart instance
+  const chartInstance: any = null;
+
+  // Load analysis data
+  async function loadAnalysisData(days: number = 7) {
+    try {
+      // Update period buttons
+      updatePeriodButtons(days);
+      
+      // Load data in parallel
+      await Promise.all([
+        loadTensionChart(days),
+        loadStatistics(days),
+        loadInsights(days),
+        loadEmotions(days)
+      ]);
+    } catch (error) {
+      console.error('Failed to load analysis data:', error);
+      notificationActions.error('分析データの読み込みに失敗しました');
+    }
+  }
+
+  function updatePeriodButtons(activePeriod: number) {
+    document.querySelectorAll('[data-period]').forEach(btn => {
+      const period = parseInt(btn.getAttribute('data-period') || '7');
+      if (period === activePeriod) {
+        btn.className = 'btn btn-primary text-sm';
+      } else {
+        btn.className = 'btn btn-secondary text-sm';
+      }
+    });
+  }
+
+  async function loadTensionChart(days: number) {
+    const loading = document.getElementById('chart-loading');
+    const canvas = document.getElementById('tension-chart') as HTMLCanvasElement;
+    const empty = document.getElementById('chart-empty');
+
+    try {
+      const response = await apiClient.getTensionScores(days);
+      
+      loading?.classList.add('hidden');
+      
+      if (response.scores.length === 0) {
+        empty?.classList.remove('hidden');
+        canvas?.classList.add('hidden');
+      } else {
+        empty?.classList.add('hidden');
+        canvas?.classList.remove('hidden');
+        
+        // Render chart (simplified version without Chart.js for now)
+        renderSimpleChart(canvas, response.scores);
+      }
+    } catch (error) {
+      loading?.classList.add('hidden');
+      empty?.classList.remove('hidden');
+    }
+  }
+
+  function renderSimpleChart(canvas: HTMLCanvasElement, scores: any[]) {
+    const ctx = canvas.getContext('2d');
+    if (!ctx || scores.length === 0) return;
+
+    // Sort scores by date in ascending order (oldest to newest)
+    // This ensures that x-axis shows time progression from left to right
+    const sortedScores = [...scores].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    console.log('Rendering chart with sorted scores:', sortedScores.map(s => s.date));
+
+    // Simple line chart rendering
+    const width = canvas.width = canvas.offsetWidth * 2; // High DPI
+    const height = canvas.height = canvas.offsetHeight * 2;
+    ctx.scale(2, 2);
+
+    const padding = 40;
+    const chartWidth = width / 2 - padding * 2;
+    const chartHeight = height / 2 - padding * 2;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, width / 2, height / 2);
+
+    // Draw grid
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.lineWidth = 1;
+    
+    // Horizontal lines
+    for (let i = 0; i <= 5; i++) {
+      const y = padding + (chartHeight / 5) * i;
+      ctx.beginPath();
+      ctx.moveTo(padding, y);
+      ctx.lineTo(padding + chartWidth, y);
+      ctx.stroke();
+    }
+
+    // Vertical lines  
+    const stepX = chartWidth / Math.max(sortedScores.length - 1, 1);
+    for (let i = 0; i < sortedScores.length; i++) {
+      const x = padding + stepX * i;
+      ctx.beginPath();
+      ctx.moveTo(x, padding);
+      ctx.lineTo(x, padding + chartHeight);
+      ctx.stroke();
+    }
+
+    // Draw line chart
+    if (sortedScores.length > 1) {
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+
+      sortedScores.forEach((score, index) => {
+        const x = padding + stepX * index;
+        const y = padding + chartHeight - (score.tension_score / 100) * chartHeight;
+        
+        if (index === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
+      
+      ctx.stroke();
+
+      // Draw points
+      ctx.fillStyle = '#3b82f6';
+      sortedScores.forEach((score, index) => {
+        const x = padding + stepX * index;
+        const y = padding + chartHeight - (score.tension_score / 100) * chartHeight;
+        
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, 2 * Math.PI);
+        ctx.fill();
+      });
+    }
+
+    // Draw labels
+    ctx.fillStyle = '#6b7280';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center';
+    
+    // Y-axis labels
+    for (let i = 0; i <= 5; i++) {
+      const value = 100 - (i * 20);
+      const y = padding + (chartHeight / 5) * i + 4;
+      ctx.textAlign = 'right';
+      ctx.fillText(value.toString(), padding - 10, y);
+    }
+
+    // X-axis labels (dates)
+    ctx.textAlign = 'center';
+    sortedScores.forEach((score, index) => {
+      if (index % Math.ceil(sortedScores.length / 5) === 0) {
+        const x = padding + stepX * index;
+        const date = new Date(score.date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
+        ctx.fillText(date, x, padding + chartHeight + 20);
+      }
+    });
+  }
+
+  async function loadStatistics(days: number) {
+    const loading = document.getElementById('stats-loading');
+    const display = document.getElementById('stats-display');
+
+    try {
+      const response = await apiClient.getTensionScores(days);
+      
+      loading?.classList.add('hidden');
+      display?.classList.remove('hidden');
+      
+      if (response.statistics) {
+        displayStatistics(response.statistics);
+      }
+    } catch (error) {
+      loading?.classList.add('hidden');
+    }
+  }
+
+  function displayStatistics(stats: any) {
+    const avgScore = document.getElementById('avg-score');
+    const maxScore = document.getElementById('max-score');
+    const minScore = document.getElementById('min-score');
+    const trendIndicator = document.getElementById('trend-indicator');
+    const trendIcon = document.getElementById('trend-icon');
+    const trendText = document.getElementById('trend-text');
+
+    if (avgScore) avgScore.textContent = Math.round(stats.average).toString();
+    if (maxScore) maxScore.textContent = Math.round(stats.max).toString();
+    if (minScore) minScore.textContent = Math.round(stats.min).toString();
+    
+    if (trendIndicator && trendIcon && trendText) {
+      const trend = stats.trend;
+      let iconClass = '';
+      let textContent = '';
+      let bgClass = '';
+
+      switch (trend) {
+        case 'improving':
+          iconClass = '↗️';
+          textContent = '改善傾向';
+          bgClass = 'bg-green-100 text-green-800';
+          break;
+        case 'declining':
+          iconClass = '↘️';
+          textContent = '注意が必要';
+          bgClass = 'bg-red-100 text-red-800';
+          break;
+        default:
+          iconClass = '→';
+          textContent = '安定';
+          bgClass = 'bg-gray-100 text-gray-800';
+      }
+
+      trendIcon.textContent = iconClass;
+      trendText.textContent = textContent;
+      trendIndicator.className = `inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${bgClass}`;
+    }
+  }
+
+  async function loadInsights(days: number) {
+    const loading = document.getElementById('insights-loading');
+    const list = document.getElementById('insights-list');
+    const empty = document.getElementById('insights-empty');
+
+    try {
+      const response = await apiClient.getAnalysisInsights(days);
+      
+      loading?.classList.add('hidden');
+      
+      if (response.insights.length === 0) {
+        empty?.classList.remove('hidden');
+      } else {
+        list?.classList.remove('hidden');
+        displayInsights(response.insights);
+      }
+    } catch (error) {
+      loading?.classList.add('hidden');
+      empty?.classList.remove('hidden');
+    }
+  }
+
+  function displayInsights(insights: any[]) {
+    const list = document.getElementById('insights-list');
+    if (!list) return;
+
+    list.innerHTML = insights.map(insight => {
+      const levelColors = {
+        positive: 'bg-green-50 border-green-200',
+        attention: 'bg-yellow-50 border-yellow-200',
+        neutral: 'bg-blue-50 border-blue-200',
+        high: 'bg-red-50 border-red-200',
+        medium: 'bg-orange-50 border-orange-200',
+        low: 'bg-gray-50 border-gray-200'
+      };
+
+      const colorClass = levelColors[insight.level as keyof typeof levelColors] || levelColors.neutral;
+
+      return `
+        <div class="p-3 border rounded-lg ${colorClass}">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <p class="text-sm font-medium text-gray-900">${insight.message}</p>
+              <p class="text-xs text-gray-500 mt-1">${insight.type}</p>
+            </div>
+            <div class="ml-2 text-xs font-medium text-gray-600">
+              ${insight.value}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function loadEmotions(days: number) {
+    const loading = document.getElementById('emotions-loading');
+    const list = document.getElementById('emotions-list');
+    const empty = document.getElementById('emotions-empty');
+
+    try {
+      // This would require a new API endpoint for emotion breakdown
+      // For now, we'll use placeholder data
+      loading?.classList.add('hidden');
+      list?.classList.remove('hidden');
+      
+      const mockEmotions = [
+        { emotion: '喜び', percentage: 35, color: 'bg-green-500' },
+        { emotion: '穏やか', percentage: 25, color: 'bg-blue-500' },
+        { emotion: '不安', percentage: 20, color: 'bg-yellow-500' },
+        { emotion: '悲しみ', percentage: 15, color: 'bg-red-500' },
+        { emotion: '怒り', percentage: 5, color: 'bg-red-700' }
+      ];
+      
+      displayEmotions(mockEmotions);
+    } catch (error) {
+      loading?.classList.add('hidden');
+      empty?.classList.remove('hidden');
+    }
+  }
+
+  function displayEmotions(emotions: any[]) {
+    const list = document.getElementById('emotions-list');
+    if (!list) return;
+
+    list.innerHTML = emotions.map(emotion => `
+      <div class="flex items-center justify-between">
+        <div class="flex items-center flex-1">
+          <div class="w-3 h-3 rounded-full ${emotion.color} mr-3"></div>
+          <span class="text-sm text-gray-700">${emotion.emotion}</span>
+        </div>
+        <div class="flex items-center">
+          <div class="w-16 bg-gray-200 rounded-full h-2 mr-3">
+            <div class="${emotion.color} h-2 rounded-full" style="width: ${emotion.percentage}%"></div>
+          </div>
+          <span class="text-sm font-medium text-gray-900 w-8 text-right">${emotion.percentage}%</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Event listeners
+  if (typeof window !== 'undefined') {
+    // Period buttons
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      const period = target.getAttribute('data-period');
+      if (period) {
+        currentPeriod = parseInt(period);
+        loadAnalysisData(currentPeriod);
+      }
+    });
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      loadAnalysisData(currentPeriod);
+    });
+  }
+</script> 

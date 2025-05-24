@@ -1,0 +1,742 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+---
+
+<Layout title="チャット - Kasaneha">
+  <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <Navigation currentPath="/chat" />
+    
+    <!-- Main chat container -->
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+      <!-- Chat header with elevation -->
+      <div class="bg-white shadow-sm border border-gray-200 rounded-t-xl mx-auto mt-6 backdrop-blur-sm">
+        <div class="px-6 py-5 sm:px-8">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+              <!-- AI Avatar with material elevation -->
+              <div class="relative">
+                <div class="h-12 w-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                  <svg class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </div>
+                <!-- Online status indicator -->
+                <div class="absolute -bottom-1 -right-1 h-4 w-4 bg-green-500 border-2 border-white rounded-full animate-pulse"></div>
+              </div>
+              
+              <div class="flex-1 min-w-0">
+                <h1 class="text-xl font-semibold text-gray-900 tracking-tight">かさね</h1>
+                <p class="text-sm text-gray-600" id="chat-status">AI日記アシスタント</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+              <!-- Session info with better spacing -->
+              <div class="hidden sm:block text-right">
+                <p class="text-sm font-medium text-gray-900" id="session-date">今日の日記</p>
+                <p class="text-xs text-gray-500" id="message-count">0 メッセージ</p>
+              </div>
+              
+              <!-- Complete session button with material design -->
+              <button
+                id="complete-session-btn"
+                class="hidden inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200"
+                title="今日のセッションを完了"
+              >
+                <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                完了
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat messages container with better spacing -->
+      <div class="bg-white shadow-sm border-l border-r border-gray-200 mx-auto">
+        <div 
+          id="messages-container" 
+          class="h-[calc(100vh-320px)] overflow-y-auto px-6 py-6 scroll-smooth"
+        >
+          <!-- Loading state with better design -->
+          <div id="loading-messages" class="flex flex-col items-center justify-center py-16">
+            <div class="relative">
+              <div class="animate-spin rounded-full h-10 w-10 border-3 border-blue-200 border-t-blue-600"></div>
+            </div>
+            <span class="mt-4 text-gray-600 font-medium">会話を読み込み中...</span>
+          </div>
+
+          <!-- Empty state with material design -->
+          <div id="empty-state" class="text-center py-16 hidden">
+            <div class="mx-auto w-20 h-20 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mb-6 shadow-inner">
+              <svg class="h-10 w-10 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">かさねとの会話を始めましょう</h3>
+            <p class="text-gray-600 mb-8 max-w-sm mx-auto leading-relaxed">今日の気持ちや出来事を自由に話してください。あなたの心に寄り添います。</p>
+            
+            <!-- Quick starter messages -->
+            <div class="flex flex-wrap justify-center gap-3 max-w-md mx-auto">
+              <button class="quick-start-btn" data-message="今日はどんな一日でした？">
+                💭 今日の出来事
+              </button>
+              <button class="quick-start-btn" data-message="今の気持ちを聞かせてください">
+                ❤️ 今の気持ち
+              </button>
+              <button class="quick-start-btn" data-message="最近悩んでいることがあります">
+                😔 悩み相談
+              </button>
+            </div>
+          </div>
+
+          <!-- Messages will be inserted here -->
+          <div id="messages-list"></div>
+          
+          <!-- Typing indicator with material design -->
+          <div id="typing-indicator" class="flex items-end space-x-3 hidden animate-fade-in mb-6">
+            <div class="h-8 w-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+              <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <div class="flex flex-col items-start">
+              <div class="message-bubble ai">
+                <div class="flex space-x-1 py-3 px-4">
+                  <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                  <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                  <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Message input with material design -->
+      <div class="bg-white shadow-sm border border-gray-200 rounded-b-xl mx-auto">
+        <div class="px-6 py-5">
+          <form id="message-form" class="flex items-end space-x-4">
+            <div class="flex-1">
+              <textarea
+                id="message-input"
+                rows="1"
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-0 focus:border-gray-300 transition-all duration-200 text-gray-900 placeholder-gray-500 shadow-sm scrollbar-hide"
+                placeholder="今日の気持ちや出来事を話してください..."
+                style="min-height: 48px; max-height: 120px;"
+                disabled
+              ></textarea>
+            </div>
+            <div class="flex flex-col justify-end">
+              <button
+                type="submit"
+                id="send-button"
+                class="inline-flex items-center justify-center w-12 h-12 bg-blue-600 text-white rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
+                disabled
+              >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              </button>
+            </div>
+          </form>
+          
+          <!-- Input hints with better spacing -->
+          <div class="mt-3 flex items-center justify-between text-xs text-gray-500">
+            <div class="flex items-center space-x-4">
+              <span class="inline-flex items-center">
+                <kbd class="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Shift</kbd>
+                <span class="mx-1">+</span>
+                <kbd class="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Enter</kbd>
+                <span class="ml-1">で改行</span>
+              </span>
+              <span id="char-count" class="font-medium">0/1000</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="inline-flex items-center">
+                <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                <span class="font-medium">オンライン</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Completion modal with better design -->
+  <div id="completion-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden backdrop-blur-sm">
+    <div class="bg-white rounded-2xl p-8 max-w-md mx-4 w-full shadow-2xl border border-gray-200 animate-scale-up">
+      <div class="flex items-center mb-6">
+        <div class="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
+          <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h3 class="ml-4 text-xl font-semibold text-gray-900">セッション完了</h3>
+      </div>
+      
+      <p class="text-gray-600 mb-8 leading-relaxed">
+        今日の日記セッションを完了しますか？<br>
+        完了後は分析結果を確認できます。
+      </p>
+      
+      <div class="flex space-x-4">
+        <button id="cancel-completion" class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-200">
+          キャンセル
+        </button>
+        <button id="confirm-completion" class="flex-1 px-4 py-3 bg-green-600 text-white font-medium rounded-xl hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200">
+          完了する
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom styles for better material design -->
+  <style>
+    /* Quick start buttons */
+    .quick-start-btn {
+      @apply px-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-sm;
+    }
+
+    /* Auto-expanding textarea */
+    #message-input {
+      field-sizing: content;
+    }
+
+    /* Hide scrollbar for textarea */
+    .scrollbar-hide {
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* Internet Explorer 10+ */
+    }
+
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none; /* WebKit */
+    }
+
+    /* Custom textarea styling */
+    #message-input {
+      transition: all 0.2s ease;
+    }
+
+    #message-input:focus {
+      outline: none !important;
+      border-color: #d1d5db !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+      transform: none !important;
+    }
+
+    #message-input:hover {
+      border-color: #9ca3af;
+    }
+
+    /* Scale up animation for modal */
+    @keyframes scale-up {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .animate-scale-up {
+      animation: scale-up 0.2s ease-out;
+    }
+
+    /* Improved scrollbar for messages container */
+    #messages-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #messages-container::-webkit-scrollbar-track {
+      background: #f8fafc;
+      border-radius: 4px;
+    }
+
+    #messages-container::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    #messages-container::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Message bubble styles */
+    .message-bubble {
+      border-radius: 1rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease;
+    }
+
+    .message-bubble.user {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    }
+
+    .message-bubble.ai {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+    }
+
+    /* Fade in animation for messages */
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fade-in {
+      animation: fade-in 0.3s ease-out;
+    }
+  </style>
+</Layout>
+
+<script>
+  import { $isAuthenticated } from '../stores/auth';
+  import { chatActions, $currentSession, $messages, $isSending, $isLoadingSession, $chatError } from '../stores/chat';
+  import { notificationActions } from '../stores/notifications';
+  import { apiClient } from '../api/client';
+
+  // Type definition for message (using the full Message type from types)
+  import type { Message } from '../types/index';
+
+  // Redirect if not authenticated
+  if (typeof window !== 'undefined') {
+    const checkAuth = () => {
+      const isAuthenticated = $isAuthenticated.get();
+      
+      if (!isAuthenticated) {
+        // Small delay to allow for auth initialization
+        setTimeout(() => {
+          if (!$isAuthenticated.get()) {
+            window.location.href = '/login';
+          }
+        }, 100);
+      }
+    };
+    
+    $isAuthenticated.subscribe(checkAuth);
+    
+    // Initial check
+    setTimeout(checkAuth, 500);
+  }
+
+  // DOM elements
+  const messagesContainer = document.getElementById('messages-container');
+  const messagesList = document.getElementById('messages-list');
+  const messageForm = document.getElementById('message-form');
+  const messageInput = document.getElementById('message-input') as HTMLTextAreaElement;
+  const sendButton = document.getElementById('send-button');
+  const loadingMessages = document.getElementById('loading-messages');
+  const emptyState = document.getElementById('empty-state');
+  const typingIndicator = document.getElementById('typing-indicator');
+  const chatStatus = document.getElementById('chat-status');
+  const sessionDate = document.getElementById('session-date');
+  const messageCount = document.getElementById('message-count');
+  const charCount = document.getElementById('char-count');
+  const completeButton = document.getElementById('complete-session-btn');
+  const completionModal = document.getElementById('completion-modal');
+  const confirmCompletion = document.getElementById('confirm-completion');
+  const cancelCompletion = document.getElementById('cancel-completion');
+
+  // Initialize chat
+  async function initializeChat() {
+    try {
+      // Check for URL parameters to load specific session
+      const urlParams = new URLSearchParams(window.location.search);
+      const dateParam = urlParams.get('date');
+      const sessionIdParam = urlParams.get('sessionId');
+
+      if (sessionIdParam) {
+        // Load specific session by ID
+        console.log('Loading specific session:', sessionIdParam);
+        await chatActions.loadSessionMessages(sessionIdParam);
+      } else if (dateParam) {
+        // Try to load session for specific date
+        console.log('Loading session for date:', dateParam);
+        try {
+          // Parse the date and get sessions for that month to find the specific date
+          const date = new Date(dateParam);
+          const year = date.getFullYear();
+          const month = date.getMonth() + 1;
+          
+          console.log('Fetching sessions for year/month:', year, month);
+          const sessions = await apiClient.getUserSessions({ 
+            limit: 100,  // Get more sessions to find the specific date
+            year: year,
+            month: month 
+          });
+          
+          const sessionForDate = sessions.sessions.find(s => s.date === dateParam);
+          
+          if (sessionForDate) {
+            console.log('Found session for date, loading messages:', sessionForDate.id);
+            await chatActions.loadSessionMessages(sessionForDate.id);
+          } else {
+            // No session found for this date, show empty state with helpful message
+            const formattedDate = date.toLocaleDateString('ja-JP', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            });
+            console.log('No session found for date:', dateParam);
+            notificationActions.info(`${formattedDate}の日記は見つかりませんでした`);
+            // Clear the session to show empty state
+            chatActions.clearSession();
+          }
+        } catch (error) {
+          console.error('Failed to load session for date:', error);
+          notificationActions.error('指定された日付のセッションを読み込めませんでした');
+          chatActions.clearSession();
+        }
+      } else {
+        // Default behavior: load today's session
+        // This will call GET /sessions/today followed by GET /sessions/:id/messages sequentially
+        console.log('Loading today\'s session...');
+        await chatActions.loadTodaySession();
+      }
+    } catch (error) {
+      console.error('Failed to initialize chat:', error);
+      notificationActions.error('チャットの初期化に失敗しました');
+    }
+  }
+
+  // Display messages with improved design
+  function displayMessages(messages: Message[]) {
+    if (!messagesList) return;
+
+    messagesList.innerHTML = messages.map((message, index) => {
+      const isUser = message.sender === 'user';
+      const time = new Date(message.created_at).toLocaleTimeString('ja-JP', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      return `
+        <div class="flex items-end space-x-3 ${isUser ? 'flex-row-reverse space-x-reverse' : ''} animate-fade-in mb-6" style="animation-delay: ${index * 0.1}s">
+          <!-- Avatar -->
+          <div class="h-8 w-8 ${isUser ? 'bg-blue-600' : 'bg-gradient-to-r from-blue-500 to-purple-600'} rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+            <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              ${isUser 
+                ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />'
+                : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />'
+              }
+            </svg>
+          </div>
+          
+          <!-- Message content and time -->
+          <div class="flex flex-col ${isUser ? 'items-end' : 'items-start'} max-w-lg flex-1">
+            <!-- Message bubble -->
+            <div class="message-bubble ${isUser ? 'user' : 'ai'}">
+              <div class="px-4 py-3">
+                <p class="text-sm leading-relaxed whitespace-pre-wrap ${isUser ? 'text-white' : 'text-gray-900'}">${message.content}</p>
+              </div>
+            </div>
+            
+            <!-- Time display outside bubble -->
+            <div class="mt-1 ${isUser ? 'mr-2' : 'ml-2'}">
+              <span class="text-xs text-gray-500 font-medium">${time}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Scroll to bottom with smooth animation
+    setTimeout(() => {
+      if (messagesContainer) {
+        messagesContainer.scrollTo({
+          top: messagesContainer.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+    }, 100);
+  }
+
+  // Update UI state
+  function updateUIState() {
+    const session = $currentSession.get();
+    const messages = $messages.get();
+    const isLoading = $isLoadingSession.get();
+    const isSending = $isSending.get();
+
+    // Show loading only when we're truly loading and don't have a session yet
+    const shouldShowLoading = isLoading && !session;
+    
+    // Update loading state
+    if (loadingMessages) {
+      loadingMessages.classList.toggle('hidden', !shouldShowLoading);
+    }
+
+    // Update empty state - show when we have a session but no messages and not loading
+    const shouldShowEmpty = session && messages.length === 0 && !isLoading;
+    if (emptyState) {
+      emptyState.classList.toggle('hidden', !shouldShowEmpty);
+    }
+
+    // Check if this is a historical session (not today)
+    const today = new Date().toDateString();
+    const sessionDateString = session ? new Date(session.session_date).toDateString() : null;
+    const isHistoricalSession = sessionDateString !== null && sessionDateString !== today;
+
+    // Enable/disable input
+    if (messageInput) {
+      messageInput.disabled = !session || session.status === 'completed' || isSending || isHistoricalSession;
+      
+      // Update placeholder for historical sessions
+      if (isHistoricalSession) {
+        messageInput.placeholder = '過去の日記は閲覧のみです';
+      } else if (session?.status === 'completed') {
+        messageInput.placeholder = 'このセッションは完了済みです';
+      } else {
+        messageInput.placeholder = '今日の気持ちや出来事を話してください...';
+      }
+    }
+    if (sendButton) {
+      (sendButton as HTMLButtonElement).disabled = !session || session.status === 'completed' || isSending || !messageInput?.value.trim() || isHistoricalSession;
+    }
+
+    // Update session info
+    if (session) {
+      if (sessionDate) {
+        const date = new Date(session.session_date).toLocaleDateString('ja-JP');
+        sessionDate.textContent = `${date}の日記`;
+      }
+      if (messageCount) {
+        messageCount.textContent = `${messages.length} メッセージ`;
+      }
+      if (chatStatus) {
+        chatStatus.textContent = session.status === 'completed' ? 'セッション完了' : 'AI日記アシスタント';
+      }
+      if (completeButton) {
+        completeButton.classList.toggle('hidden', session.status === 'completed' || messages.length === 0 || isHistoricalSession);
+      }
+    }
+
+    // Display messages
+    if (messages.length > 0) {
+      displayMessages(messages);
+    }
+  }
+
+  // Send message
+  async function sendMessage(content: string) {
+    const session = $currentSession.get();
+    if (!session || !content.trim()) return;
+
+    try {
+      // Create temporary user message for immediate display
+      const tempUserMessage: Message = {
+        id: `temp-${Date.now()}`,
+        session_id: session.id,
+        sender: 'user',
+        content: content.trim(),
+        created_at: new Date().toISOString(),
+        sequence_number: $messages.get().length + 1
+      };
+
+      // Add user message immediately to UI
+      chatActions.addMessage(tempUserMessage);
+      
+      // Clear input immediately for better UX
+      if (messageInput) {
+        messageInput.value = '';
+        adjustTextareaHeight();
+      }
+      updateCharCount();
+
+      // Show typing indicator for AI response
+      showTypingIndicator();
+
+      // Send message to backend
+      await chatActions.sendMessage(content.trim());
+      
+      // Focus back to input after successful send
+      if (messageInput) {
+        messageInput.focus();
+      }
+      
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      notificationActions.error('メッセージの送信に失敗しました');
+      
+      // Remove the temporary user message on error
+      const currentMessages = $messages.get();
+      $messages.set(currentMessages.filter(msg => !msg.id.startsWith('temp-')));
+      
+      // Focus back to input even on error
+      if (messageInput) {
+        messageInput.focus();
+      }
+    } finally {
+      hideTypingIndicator();
+    }
+  }
+
+  // Typing indicator
+  function showTypingIndicator() {
+    if (typingIndicator) {
+      typingIndicator.classList.remove('hidden');
+      setTimeout(() => {
+        if (messagesContainer) {
+          messagesContainer.scrollTo({
+            top: messagesContainer.scrollHeight,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
+    }
+  }
+
+  function hideTypingIndicator() {
+    if (typingIndicator) {
+      typingIndicator.classList.add('hidden');
+    }
+  }
+
+  // Character count with improved styling
+  function updateCharCount() {
+    if (messageInput && charCount) {
+      const count = messageInput.value.length;
+      charCount.textContent = `${count}/1000`;
+      
+      if (count > 900) {
+        charCount.className = 'font-medium text-red-500';
+      } else if (count > 700) {
+        charCount.className = 'font-medium text-yellow-500';
+      } else {
+        charCount.className = 'font-medium text-gray-500';
+      }
+    }
+  }
+
+  // Auto-resize textarea
+  function adjustTextareaHeight() {
+    if (messageInput) {
+      messageInput.style.height = 'auto';
+      const newHeight = Math.min(Math.max(messageInput.scrollHeight, 48), 120);
+      messageInput.style.height = newHeight + 'px';
+    }
+  }
+
+  // Quick start message handler
+  function handleQuickStartMessage(message: string) {
+    if (messageInput) {
+      messageInput.value = message;
+      adjustTextareaHeight();
+      updateCharCount();
+      messageInput.focus();
+      
+      // Optional: auto-send the message
+      setTimeout(() => {
+        sendMessage(message);
+      }, 500);
+    }
+  }
+
+  // Complete session
+  async function completeSession() {
+    const session = $currentSession.get();
+    if (!session) return;
+
+    try {
+      await chatActions.completeSession();
+      notificationActions.success('セッションが完了しました');
+      hideCompletionModal();
+    } catch (error) {
+      console.error('Failed to complete session:', error);
+      notificationActions.error('セッションの完了に失敗しました');
+    }
+  }
+
+  function showCompletionModal() {
+    if (completionModal) {
+      completionModal.classList.remove('hidden');
+    }
+  }
+
+  function hideCompletionModal() {
+    if (completionModal) {
+      completionModal.classList.add('hidden');
+    }
+  }
+
+  // Event listeners
+  if (typeof window !== 'undefined') {
+    // Form submission
+    messageForm?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (messageInput?.value.trim()) {
+        sendMessage(messageInput.value);
+      }
+    });
+
+    // Input events with auto-resize
+    messageInput?.addEventListener('input', () => {
+      updateCharCount();
+      adjustTextareaHeight();
+    });
+
+    messageInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (messageInput.value.trim()) {
+          sendMessage(messageInput.value);
+        }
+      }
+    });
+
+    // Quick start buttons
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (target.classList.contains('quick-start-btn')) {
+        const message = target.getAttribute('data-message');
+        if (message) {
+          handleQuickStartMessage(message);
+        }
+      }
+    });
+
+    // Complete session events
+    completeButton?.addEventListener('click', showCompletionModal);
+    confirmCompletion?.addEventListener('click', completeSession);
+    cancelCompletion?.addEventListener('click', hideCompletionModal);
+
+    // Close modal on background click
+    completionModal?.addEventListener('click', (e) => {
+      if (e.target === completionModal) {
+        hideCompletionModal();
+      }
+    });
+
+    // Store subscriptions
+    $currentSession.subscribe(updateUIState);
+    $messages.subscribe(updateUIState);
+    $isLoadingSession.subscribe(updateUIState);
+    $isSending.subscribe(updateUIState);
+    
+    $chatError.subscribe((error) => {
+      if (error) {
+        notificationActions.error(error);
+        chatActions.clearError();
+      }
+    });
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      updateCharCount();
+      adjustTextareaHeight();
+      initializeChat();
+    });
+  }
+</script> 
