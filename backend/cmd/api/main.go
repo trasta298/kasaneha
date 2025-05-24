@@ -88,6 +88,7 @@ func main() {
 			"http://localhost:3000",
 			"http://frontend:4321",
 			"http://127.0.0.1:4321",
+			"https://kasaneha.trasta.dev",
 		}, // Astro dev server + container network
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
