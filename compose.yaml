@@ -67,7 +67,7 @@ services:
           echo "MIN_MESSAGES=${MIN_MESSAGES:-2}"
           echo "WEBHOOK_URL=${WEBHOOK_URL:-}"
           echo "TZ=Asia/Tokyo"
-          echo "28 16 * * * /bin/sh /app/scripts/daily-analysis.sh"
+          echo "0 0 * * * /bin/sh /app/scripts/daily-analysis.sh"
         } > /etc/crontabs/root &&
         echo "Current crontab content:" &&
         cat /etc/crontabs/root &&
