@@ -273,3 +273,52 @@ func (r *SessionRepository) CheckSessionOwnership(ctx context.Context, sessionID
 
 	return count > 0, nil
 }
+
+// GetActiveSessionsWithMinMessages retrieves active sessions with at least minMessages messages
+func (r *SessionRepository) GetActiveSessionsWithMinMessages(ctx context.Context, minMessages int) ([]types.SessionForBatch, error) {
+	query := `
+		SELECT 
+			cs.id,
+			cs.user_id,
+			cs.session_date::text,
+			cs.status,
+			cs.created_at,
+			cs.updated_at,
+			COUNT(m.id) as message_count,
+			CASE WHEN a.id IS NOT NULL THEN true ELSE false END as has_analysis
+		FROM chat_sessions cs
+		LEFT JOIN messages m ON cs.id = m.session_id
+		LEFT JOIN analyses a ON cs.id = a.session_id
+		WHERE cs.status = $1
+		GROUP BY cs.id, cs.user_id, cs.session_date, cs.status, cs.created_at, cs.updated_at, a.id
+		HAVING COUNT(m.id) >= $2 AND (a.id IS NULL)
+		ORDER BY cs.session_date DESC
+	`
+
+	rows, err := r.db.Pool.Query(ctx, query, types.SessionStatusActive, minMessages)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get active sessions: %w", err)
+	}
+	defer rows.Close()
+
+	var sessions []types.SessionForBatch
+	for rows.Next() {
+		var session types.SessionForBatch
+		err := rows.Scan(
+			&session.ID,
+			&session.UserID,
+			&session.Date,
+			&session.Status,
+			&session.CreatedAt,
+			&session.UpdatedAt,
+			&session.MessageCount,
+			&session.HasAnalysis,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan session: %w", err)
+		}
+		sessions = append(sessions, session)
+	}
+
+	return sessions, nil
+}

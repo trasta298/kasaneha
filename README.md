@@ -194,6 +194,138 @@ go build -o bin/api cmd/api/main.go
 docker-compose build
 ```
 
+## 🔄 自動分析バッチ処理
+
+Kasanehaは、一日の終わりに自動的にアクティブなセッションを分析するバッチ処理機能を提供します。
+
+### バッチ処理の特徴
+- **自動実行**: 毎日00:00 JST（日本時間）に自動分析
+- **条件付き処理**: 2つ以上のメッセージがあるセッションのみ対象
+- **未分析セッション**: 既に分析済みのセッションはスキップ
+- **エラーハンドリング**: 失敗時の詳細ログとアラート機能
+
+### 使用方法
+
+#### 開発環境でのテスト
+```bash
+# ローカルでドライラン実行
+make batch-local-dry
+
+# ローカルで実際に実行
+make batch-local
+
+# 特定の条件での実行
+cd backend && go run ./cmd/batch --min-messages=1 --dry-run
+```
+
+#### 本番環境
+```bash
+# バッチサービスの起動（Docker Compose）
+docker compose up -d batch-scheduler
+
+# 手動実行
+make batch-run
+
+# ドライラン
+make batch-dry-run
+
+# ログの確認
+make batch-logs
+
+# リアルタイムログ監視
+make batch-logs-follow
+```
+
+#### コマンドオプション
+```bash
+# バッチコマンドのオプション
+./batch [options]
+
+# オプション:
+#   -min-messages=N    最小メッセージ数（デフォルト: 2）
+#   -dry-run          実際の処理を行わず、対象セッションを表示
+```
+
+### バッチ処理の動作
+
+1. **セッション検索**: アクティブなセッションの中から、指定したメッセージ数以上で未分析のものを検索
+2. **分析実行**: 各セッションに対して感情分析とテンションスコア算出を実行
+3. **結果保存**: 分析結果をデータベースに保存
+4. **ログ出力**: 処理結果と統計情報をログに記録
+5. **通知送信**: 設定されている場合、結果をWebhookで通知
+
+### ログとモニタリング
+
+#### ログファイル
+```bash
+# ログの場所
+/var/log/kasaneha/daily-analysis-YYYYMMDD.log
+
+# ログローテーション
+# 7日分のログを保持、古いログは自動削除
+```
+
+#### 監視機能
+```bash
+# バッチ処理の状態確認
+docker compose ps batch-scheduler
+
+# リソース使用状況
+docker stats kasaneha_batch_scheduler
+
+# コンテナログ
+docker compose logs batch-scheduler -f
+```
+
+### 環境変数設定
+
+```bash
+# バッチ処理関連の環境変数
+MIN_MESSAGES=2                           # 最小メッセージ数
+WEBHOOK_URL=https://hooks.slack.com/...  # 通知用Webhook URL（任意）
+```
+
+### トラブルシューティング
+
+#### よくある問題と解決方法
+
+1. **バッチが実行されない**
+   ```bash
+   # cronの状態確認
+   docker compose exec batch-scheduler crontab -l
+   
+   # cronログの確認
+   docker compose exec batch-scheduler tail -f /var/log/cron.log
+   ```
+
+2. **分析エラー**
+   ```bash
+   # 詳細ログの確認
+   make batch-logs
+   
+   # AIクライアントの設定確認
+   docker compose exec batch-scheduler printenv | grep GEMINI
+   ```
+
+3. **データベース接続エラー**
+   ```bash
+   # データベース接続確認
+   docker compose exec batch-scheduler ./batch --dry-run
+   ```
+
+#### 手動修復
+
+```bash
+# 特定日のセッションを手動で分析
+docker compose exec backend go run ./cmd/batch --min-messages=1
+
+# 失敗したセッションの再処理
+# 分析テーブルから該当レコードを削除後、再実行
+
+# バッチサービスの再起動
+make batch-restart
+```
+
 ## 📊 技術的特徴
 
 ### 🔧 バックエンド

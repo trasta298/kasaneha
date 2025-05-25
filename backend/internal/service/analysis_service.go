@@ -41,7 +41,7 @@ func NewAnalysisService(
 // AnalyzeSession performs comprehensive analysis of a chat session
 func (s *AnalysisService) AnalyzeSession(ctx context.Context, userID, sessionID string) (*types.Analysis, error) {
 	fmt.Printf("DEBUG: Starting analysis for sessionID: %s\n", sessionID)
-	
+
 	// Verify session ownership
 	isOwner, err := s.sessionRepo.CheckSessionOwnership(ctx, sessionID, userID)
 	if err != nil {
@@ -261,6 +261,67 @@ func (s *AnalysisService) TriggerAnalysisForCompletedSession(ctx context.Context
 			fmt.Printf("Failed to analyze session %s: %v\n", sessionID, err)
 		}
 	}()
+
+	return nil
+}
+
+// BatchAnalyzeActiveSessions automatically analyzes active sessions with minimum message count
+func (s *AnalysisService) BatchAnalyzeActiveSessions(ctx context.Context, minMessages int) error {
+	fmt.Printf("Starting batch analysis for active sessions with at least %d messages\n", minMessages)
+
+	// Get active sessions that need analysis
+	sessions, err := s.sessionRepo.GetActiveSessionsWithMinMessages(ctx, minMessages)
+	if err != nil {
+		return fmt.Errorf("failed to get active sessions: %w", err)
+	}
+
+	if len(sessions) == 0 {
+		fmt.Println("No active sessions found for batch analysis")
+		return nil
+	}
+
+	fmt.Printf("Found %d active sessions to analyze\n", len(sessions))
+
+	// Analyze each session
+	successCount := 0
+	errorCount := 0
+
+	for _, session := range sessions {
+		fmt.Printf("Analyzing session %s for user %s (messages: %d)\n",
+			session.ID, session.UserID, session.MessageCount)
+
+		analysis, err := s.AnalyzeSession(ctx, session.UserID, session.ID)
+		if err != nil {
+			fmt.Printf("Failed to analyze session %s: %v\n", session.ID, err)
+			errorCount++
+			continue
+		}
+
+		// Complete the session after successful analysis (or if analysis already existed)
+		err = s.sessionRepo.CompleteSession(ctx, session.ID)
+		if err != nil {
+			fmt.Printf("Warning: Failed to complete session %s after analysis: %v\n", session.ID, err)
+			// Continue processing - analysis was successful, status update is not critical
+		} else {
+			fmt.Printf("Session %s marked as completed\n", session.ID)
+		}
+
+		successCount++
+		if analysis != nil {
+			fmt.Printf("Successfully processed session %s (tension score: %d)\n", session.ID, analysis.TensionScore)
+		} else {
+			fmt.Printf("Successfully processed session %s\n", session.ID)
+		}
+
+		// Add a small delay between analyses to avoid overwhelming the AI service
+		time.Sleep(1 * time.Second)
+	}
+
+	fmt.Printf("Batch analysis completed: %d successful, %d errors\n", successCount, errorCount)
+
+	if errorCount > 0 {
+		return fmt.Errorf("batch analysis completed with %d errors out of %d sessions", errorCount, len(sessions))
+	}
 
 	return nil
 }

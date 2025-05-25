@@ -153,6 +153,18 @@ type SessionSummary struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
+// SessionForBatch represents a session summary with user ID for batch processing
+type SessionForBatch struct {
+	ID           string    `json:"id"`
+	UserID       string    `json:"user_id"`
+	Date         string    `json:"date"`
+	Status       string    `json:"status"`
+	MessageCount int       `json:"message_count"`
+	HasAnalysis  bool      `json:"has_analysis"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+}
+
 // Pagination represents pagination information
 type Pagination struct {
 	Total  int `json:"total"`

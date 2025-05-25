@@ -36,6 +36,46 @@ services:
       postgres:
         condition: service_healthy
 
+  # バッチ処理用サービス
+  batch-scheduler:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: kasaneha_batch_scheduler
+    environment:
+      - ENV=production
+      - DATABASE_URL=postgres://kasaneha:password@postgres:5432/kasaneha_db?sslmode=disable
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - MIN_MESSAGES=${MIN_MESSAGES:-2}
+      - WEBHOOK_URL=${WEBHOOK_URL:-}
+      - TZ=Asia/Tokyo
+    volumes:
+      - batch_logs:/var/log/kasaneha
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: |
+      /bin/sh -c '
+        apk add --no-cache cronie tzdata &&
+        ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime &&
+        echo "Asia/Tokyo" > /etc/timezone &&
+        mkdir -p /etc/crontabs &&
+        {
+          echo "ENV=production"
+          echo "DATABASE_URL=postgres://kasaneha:password@postgres:5432/kasaneha_db?sslmode=disable"
+          echo "GEMINI_API_KEY=$GEMINI_API_KEY"
+          echo "MIN_MESSAGES=${MIN_MESSAGES:-2}"
+          echo "WEBHOOK_URL=${WEBHOOK_URL:-}"
+          echo "TZ=Asia/Tokyo"
+          echo "28 16 * * * /bin/sh /app/scripts/daily-analysis.sh"
+        } > /etc/crontabs/root &&
+        echo "Current crontab content:" &&
+        cat /etc/crontabs/root &&
+        echo "Starting crond in foreground..." &&
+        crond -f -n -s -x sch,proc,pars,load,ext
+      '
+    restart: unless-stopped
+
   postgres:
     image: postgres:15-alpine
     container_name: kasaneha_postgres
@@ -74,3 +114,4 @@ services:
 volumes:
   postgres_data:
   https-portal_data:
+  batch_logs:
